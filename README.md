@@ -11,9 +11,9 @@ Raspberry Pi 4B and LCD1602 connections:
 |E|GPIO22|
 |RS|GPIO25|
 
-![wsense1.heic](wsense1.heic?raw=true "wsense1")
+![wsense1.jpg](wsense1.jpg?raw=true "wsense1")
 
-![wsense2.heic](wsense2.heic?raw=true "wsense2")
+![wsense2.jpg](wsense2.jpg?raw=true "wsense2")
 
 Ref:
 
