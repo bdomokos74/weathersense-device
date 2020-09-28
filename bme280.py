@@ -32,7 +32,7 @@ class BME280:
   def __init__(self, bus=BUS, device=DEVICE):
     self.bus = smbus.SMBus(1) # Rev 2 Pi, Pi 2 & Pi 3 uses bus 1
                          # Rev 1 Pi uses bus 0
-    self.device = device
+    self.addr = device
 
   @staticmethod
   def _getShort(data, index):
@@ -58,13 +58,13 @@ class BME280:
     result =  data[index] & 0xFF
     return result
 
-  def readID():
+  def readID(self):
     # Chip ID Register Address
     REG_ID     = 0xD0
     (chip_id, chip_version) = self.bus.read_i2c_block_data(self.addr, REG_ID, 2)
     return (chip_id, chip_version)
 
-  def readAll():
+  def readAll(self):
     # Register Addresses
     REG_DATA = 0xF7
     REG_CONTROL = 0xF4

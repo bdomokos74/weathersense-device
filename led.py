@@ -1,18 +1,20 @@
 import RPi.GPIO as GPIO
+from time import sleep
 
 LEDPIN=24
 
 class Led:
-    def __init__(ledPin=LEDPIN):
+    def __init__(self, ledPin=LEDPIN):
         self.ledPin = ledPin
-        self.GPIO.setup(ledPin, GPIO.OUT)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(ledPin, GPIO.OUT)
 
-    def clean():
+    def close(self):
         GPIO.cleanup([self.ledPin])
 
-    def blinkLed(times=2):
+    def blinkLed(self, times=2):
         for _ in range(times):
-            GPIO.output(ledPin, GPIO.HIGH)
-            sleep(0.5)
-            GPIO.output(ledPin, GPIO.LOW)
-            if times>1: sleep(0.3)
+            GPIO.output(self.ledPin, GPIO.HIGH)
+            sleep(0.05)
+            GPIO.output(self.ledPin, GPIO.LOW)
+            if times>1: sleep(0.1)

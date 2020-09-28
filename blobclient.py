@@ -16,7 +16,7 @@ class BlobClient:
 
     def __init__(self, containerName="weathersense-data"):
         self._blobServiceClient = self._createBlobServiceClient()
-        self._containerName = containerName
+        self.containerName = containerName
         
         print("blob_service_client created")
 
