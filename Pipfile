@@ -9,6 +9,7 @@ verify_ssl = true
 azure-storage-blob = "*"
 azure-identity = "*"
 ipython = "*"
+"azure.functions" = "*"
 
 [requires]
 python_version = "3.8"

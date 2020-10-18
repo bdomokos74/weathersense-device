@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e42409e47812983aafcaee24c1b57d7f1610b1f07e898935d224ea0fb2996c05"
+            "sha256": "36c2abac01d98707aa4adc6a133088eacaf2c70ba7d5c797d7c074dda499b71d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -26,18 +26,18 @@
         },
         "azure-core": {
             "hashes": [
-                "sha256:7efbeac3a6dfb634cb5323bc04e18ab609aeab6b03610808091aa0517373d626",
-                "sha256:929d18c112a02ef294b2ad2af23bacde48b42b3756f600f69b6afbf5c775bef0"
+                "sha256:621b53271f7988b766f8a7d7f7a2c44241e3d2c1d8db13e68089d6da6241748e",
+                "sha256:be23d411e19874f375c2ef0327c452be10b1e9a1023ac6afe334598f2920136b"
             ],
-            "version": "==1.8.1"
+            "version": "==1.8.2"
         },
         "azure-identity": {
             "hashes": [
-                "sha256:820e1f3e21f90d36063239c6cb7ca9a6bb644cb120a6b1ead3081cafdf6ceaf8",
-                "sha256:92ccea6c6ac7724d186cb73422d1ad8f525202dce2bdc17f35c695948fadf222"
+                "sha256:6f95b3505fc134ad16bd16da053456e1933188ac43161704d48ddb4edebf72c9",
+                "sha256:7b071089faf0789059ac24052e311e2b096a002c173d42b96896db09c6e2ba5d"
             ],
             "index": "pypi",
-            "version": "==1.4.0"
+            "version": "==1.4.1"
         },
         "azure-storage-blob": {
             "hashes": [
@@ -46,6 +46,14 @@
             ],
             "index": "pypi",
             "version": "==12.5.0"
+        },
+        "azure.functions": {
+            "hashes": [
+                "sha256:917a7ddfa886c5490a84696f42c4347435153eb3594b54809a546cdfd1d67cae",
+                "sha256:c2df48e9fd26d82c077a37a5c3f1942aa1a3450bf6f63dc0bef94ae48657e353"
+            ],
+            "index": "pypi",
+            "version": "==1.4.0"
         },
         "backcall": {
             "hashes": [
@@ -244,11 +252,11 @@
         },
         "prompt-toolkit": {
             "hashes": [
-                "sha256:822f4605f28f7d2ba6b0b09a31e25e140871e96364d1d377667b547bb3bf4489",
-                "sha256:83074ee28ad4ba6af190593d4d4c607ff525272a504eb159199b6dd9f950c950"
+                "sha256:25c95d2ac813909f813c93fde734b6e44406d1477a9faef7c915ff37d39c0a8c",
+                "sha256:7debb9a521e0b1ee7d2fe96ee4bd60ef03c6492784de0547337ca4433e46aa63"
             ],
             "markers": "python_full_version >= '3.6.1'",
-            "version": "==3.0.7"
+            "version": "==3.0.8"
         },
         "ptyprocess": {
             "hashes": [

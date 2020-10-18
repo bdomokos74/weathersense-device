@@ -1,6 +1,7 @@
 from azure.identity import ClientSecretCredential
 import os
 from datetime import datetime
+from azure.storage.blob import BlobServiceClient
 
 class BlobClient:
     '''
@@ -28,7 +29,6 @@ class BlobClient:
         )
 
         # Instantiate a BlobServiceClient using a token credential
-        from azure.storage.blob import BlobServiceClient
         blob_service_client = BlobServiceClient(account_url=self.oauth_url, credential=token_credential)
         return blob_service_client
 
@@ -37,12 +37,11 @@ class BlobClient:
         datePart = datetime.now().strftime("%Y%m%d")
         return "-".join([prefix, sensorId, datePart])+extension
 
-    def createMeasBlob(self, prefix="meas", sensorId="1", debug=False):
+    def createMeasBlob(self, newBlobName, debug=False):
         #account_info = self._blobServiceClient.get_service_properties()
         #print("acc info:") 
         #print(account_info)
         
-        newBlobName = self.createBlobName(prefix, sensorId)
         containerClient = self._blobServiceClient.get_container_client(self.containerName)
         blobClient = containerClient.get_blob_client(newBlobName)
         blobProp = blobClient.create_append_blob()

@@ -1,0 +1,12 @@
+{
+  "scriptFile": "__init__.py",
+  "bindings": [
+    {
+      "type": "eventHubTrigger",
+      "name": "event",
+      "direction": "in",
+      "eventHubName": "iothub-ehub-weathersen-5014524-f74acef288",
+      "connection": "IOTHUBCONN"
+    }
+  ]
+}
