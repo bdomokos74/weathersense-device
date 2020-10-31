@@ -6,6 +6,8 @@
 #include "Esp32MQTTClient.h"
 #include "iot_config.h"
 
+#include "led.h"
+
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
@@ -26,7 +28,7 @@ static bool hasIoTHub = false;
 static bool hasWifi = false;
 int messageCount = 1;
 static bool messageSending = true;
-static uint64_t send_interval_ms;
+unsigned long send_interval_ms = 0;
 
 // 1wire
 const int oneWireDev = 0;
@@ -41,11 +43,17 @@ OneWire oneWire(oneWirePin);
 DallasTemperature sensors(&oneWire);
 
 // LED
-const int ledPin = 13;
+int ledPin = 13;
 
 // 7seg
+// Connection:
+// + -> USB
+// - -> GND
+// D -> SDA
+// C -> SCL
 Adafruit_7segment sseg = Adafruit_7segment();
-bool firstLoop = true;
+static bool hasSevenSeg = false;
+int sevenSegAddr = 0x70;
 
 static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result)
 {
@@ -110,7 +118,6 @@ void readAddress(DeviceAddress deviceAddress) {
   for (uint8_t i = 0; i < 8; i++){
     addr[2*i] = tohex(deviceAddress[i]>>4);
     addr[2*i+1] = tohex(deviceAddress[i]&0xf);
-    Serial.println(deviceAddress[i]);
   }
 }
 void readTemp(int i) {
@@ -124,24 +131,7 @@ void readTemp(int i) {
     Serial.println("TempC="+String(tempC));
   }
 }
-
-void flashLed() {
-  digitalWrite(ledPin, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(300);                       // wait for a second
-  digitalWrite(ledPin, LOW);
-  delay(300);
-  digitalWrite(ledPin, HIGH);
-  delay(300);
-  digitalWrite(ledPin, LOW);    // turn the LED off by making the voltage LOW
-}
-
-void setup() {
-  Serial.begin(115200);
-  Serial.println("ESP32 Device");
-  Serial.println("Initializing...");
-  Serial.println(" > WiFi");
-  Serial.println("Starting connecting WiFi.");
-
+void initWifi() {
   delay(10);
   WiFi.mode(WIFI_AP);
   WiFi.begin(ssid, password);
@@ -150,19 +140,42 @@ void setup() {
     Serial.print(".");
     hasWifi = false;
   }
-  hasWifi = true;
-  
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
+  hasWifi = true;  
+}
+void initHub() {
+  Serial.println("WiFi connected. IP: ");
   Serial.println(WiFi.localIP());
   Serial.println(" > IoT Hub");
   if (!Esp32MQTTClient_Init((const uint8_t*)connectionString, true))
   {
     hasIoTHub = false;
     Serial.println("Initializing IoT hub failed.");
-    return;
+  } else {
+    hasIoTHub = true;
   }
-  hasIoTHub = true;
+}
+void initSevenSeg() {
+  Wire.beginTransmission(sevenSegAddr);
+  int errorResult = Wire.endTransmission();
+  if(errorResult==0) {
+    Serial.println("Found seven seg at 0x70");
+    sseg.begin(sevenSegAddr);
+    hasSevenSeg = true;
+  } else {
+    Serial.println("No seven seg found");
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("ESP32 Device Initializing...");
+  Serial.println("Starting connecting WiFi.");
+
+  initWifi();
+  initHub();
+  Wire.begin();
+  initSevenSeg();
+  
   Esp32MQTTClient_SetSendConfirmationCallback(SendConfirmationCallback);
   Esp32MQTTClient_SetMessageCallback(MessageCallback);
   Esp32MQTTClient_SetDeviceTwinCallback(DeviceTwinCallback);
@@ -177,43 +190,56 @@ void setup() {
     readAddress(tempDeviceAddress);
     foundOneWireDevice = true;
     Serial.print("Device found ");
-    Serial.print(addr);
+    Serial.println(addr);
   } else {
     Serial.println("Device NOT FOUND");
   }
 
   pinMode(ledPin, OUTPUT);
-  flashLed();
+  send_interval_ms = 0;
+}
 
-  sseg.begin(0x70);
+void sendData() {
+
+    // Send teperature data
+    char messagePayload[MESSAGE_MAX_LEN];
+   
+    snprintf(messagePayload, MESSAGE_MAX_LEN, messageData, messageCount++, tempC);
+    Serial.println(messagePayload);
+    EVENT_INSTANCE* message = Esp32MQTTClient_Event_Generate(messagePayload, MESSAGE);
+    Esp32MQTTClient_SendEventInstance(message);
+
 }
 
 void loop() {
-if (hasWifi && hasIoTHub)
+  
+  if (hasWifi && hasIoTHub)
   {
-    if ( (messageSending && 
-        (int)(millis() - send_interval_ms) >= INTERVAL)
-        || firstLoop)
+    if ( messageSending && (send_interval_ms==0 ||
+        ((millis() - send_interval_ms) >= INTERVAL)) )
     {
-      firstLoop = false;
-      // Send teperature data
-      char messagePayload[MESSAGE_MAX_LEN];
+      Serial.println("In loop");
+      Serial.println(send_interval_ms);
+      
+      flashLed();
       
       readTemp(0);
-      snprintf(messagePayload, MESSAGE_MAX_LEN, messageData, messageCount++, tempC);
-      Serial.println(messagePayload);
-      EVENT_INSTANCE* message = Esp32MQTTClient_Event_Generate(messagePayload, MESSAGE);
-      Esp32MQTTClient_SendEventInstance(message);
-      send_interval_ms = millis();
       
-      sseg.println(tempC);
-      sseg.writeDisplay();
-      flashLed();
+      sendData();
+      
+      if(hasSevenSeg) {
+        sseg.println(tempC);
+        sseg.writeDisplay();
+      }
+
+      send_interval_ms = millis();
     }
     else
     {
       Esp32MQTTClient_Check();
     }
+  } else {
+    flashLedErr();
   }
   delay(10);
 }
