@@ -1,6 +1,14 @@
-## Weather sensor with BME280 + LCD + Azure IoT
+## Weather sensor with BME280 + LCD + Azure IoT Hub
 
-Raspberry Pi 4B and LCD1602 connections:
+Sensor device app to send measurement data to Azure IoT Hub
+
+### Other components
+* https://github.com/bdomokos74/weathersense-spa - Single Page Application to show the collected data
+
+* https://github.com/bdomokos74/weathersense-collect - Function app to collect sensor measurements from Azure IoT HUB and save it to Azure Blob. Also generates aggregated data, and sends out notifications.
+
+
+### Raspberry Pi 4B and LCD1602 connections
 
 |BME280|Raspberry Pi|
 |---|---|
@@ -15,7 +23,7 @@ Raspberry Pi 4B and LCD1602 connections:
 
 ![wsense2.jpg](wsense2.jpg?raw=true "wsense2")
 
-Ref:
+### Notes
 
 http://wiki.sunfounder.cc/index.php?title=LCD1602_Module
 
