@@ -7,6 +7,16 @@ Sensor device app to send measurement data to Azure IoT Hub
 
 * https://github.com/bdomokos74/weathersense-collect - Function app to collect sensor measurements from Azure IoT HUB and save it to Azure Blob. Also generates aggregated data, and sends out notifications.
 
+### TODO
+* Change data format, to allow device specific data e.g. battery voltage, retry count,...
+
+* Add battery voltage measurement
+
+* Save battery life by waking up less frequetly, and batch-sending measurements
+
+* OTA update of device software
+
+
 
 ### Raspberry Pi 4B and LCD1602 connections
 
