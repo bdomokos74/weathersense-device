@@ -14,7 +14,6 @@ async def main():
         led = Led()
         lcd = LCD()
         
-        sensorId = os.getenv("SENSOR_ID")
         (chip_id, chip_version) = bme280.readID()
         print(f"Started, chip_id={chip_id}, chip_version={chip_version}")
 
@@ -37,6 +36,7 @@ async def main():
 
                 led.blinkLed()
                 sleep(2*60)
+
     except KeyboardInterrupt:
         print("exiting...")
         await device_client.disconnect()

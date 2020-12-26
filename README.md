@@ -29,6 +29,17 @@ Sensor device app to send measurement data to Azure IoT Hub
 |E|GPIO22|
 |RS|GPIO25|
 
+#### Run raspi datacollector
+```bash
+cd raspi
+export DEV_BME_CONN_STR=... # Azure IoT Device connection string
+python3 -m venv .venv
+. ./.venv/bin/activate
+pip install -r requirements.txt
+python datacollector.py -
+```
+
+
 ![wsense1.jpg](wsense1.jpg?raw=true "wsense1")
 
 ![wsense2.jpg](wsense2.jpg?raw=true "wsense2")
