@@ -7,12 +7,23 @@ from datetime import datetime
 import os
 import RPi.GPIO as GPIO
 import asyncio
+import argparse
 
 async def main():
+    parser = argparse.ArgumentParser(
+        description="Data collector which sends sensor measurements to Azure IoT HUB"
+    )
+    parser.add_argument("--nolcd", action='store_true', help="Skip LCD printout")
+    args = parser.parse_args()
+    if args.nolcd:
+            print("No LCD")
+            
     try:
         bme280 = BME280()
         led = Led()
-        lcd = LCD()
+        lcd = None
+        if not args.nolcd:
+            lcd = LCD()
         
         (chip_id, chip_version) = bme280.readID()
         print(f"Started, chip_id={chip_id}, chip_version={chip_version}")
@@ -29,10 +40,11 @@ async def main():
                 print(f"Sending message: {measRow}")
                 await device_client.send_message(measRow)
         
-                lcdOut = f"T:{temperature:0.1f}C {pressure:0.1f}hPa\nH:{humidity:0.1f}%"
-                lcd.clear()
-                lcd.setCursor(0,0)
-                lcd.message(lcdOut)
+                if not args.nolcd:
+                    lcdOut = f"T:{temperature:0.1f}C {pressure:0.1f}hPa\nH:{humidity:0.1f}%"
+                    lcd.clear()
+                    lcd.setCursor(0,0)
+                    lcd.message(lcdOut)
 
                 led.blinkLed()
                 sleep(2*60)
@@ -41,9 +53,10 @@ async def main():
         print("exiting...")
         await device_client.disconnect()
         led.close()
-        lcd.clear()
-        lcd.setCursor(0,0)
-        lcd.destroy()
+        if not args.nolcd:
+            lcd.clear()
+            lcd.setCursor(0,0)
+            lcd.destroy()
         
 if __name__=="__main__":
    asyncio.run(main())
