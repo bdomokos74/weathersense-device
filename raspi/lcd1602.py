@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Raw LCD display control, pin_rs=25, pin_e=22, pins_db=[23, 27, 18, 17],
+
 from time import sleep
 
 class LCD:

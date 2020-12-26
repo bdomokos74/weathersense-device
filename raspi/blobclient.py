@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 from azure.storage.blob import BlobServiceClient
 
+# Writing directly to Azure Blobs
+
 class BlobClient:
     '''
     Usage: AD_APPLICATION_ID=<appid> AD_APPLICATION_SECRET=<appsecret> AD_TENANT_ID=<tenant_id> OAUTH_STORAGE_ACCOUNT_NAME=<storageaccname> python3 blobtest.py
