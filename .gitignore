@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 .local/
+
 .DS_Store
 
 __pycache__/
@@ -131,3 +132,5 @@ obj
 appsettings.json
 local.settings.json
 .python_packages
+
+iot_config.h
