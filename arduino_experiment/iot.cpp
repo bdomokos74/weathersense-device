@@ -7,7 +7,7 @@
 
 #define MESSAGE_MAX_LEN 256
 
-bool IotConn::messageSending = false;
+bool IotConn::messageSending = true;
 
 void IotConn::sendData(char* msg) {
     Serial.println("sendData called with msg:");

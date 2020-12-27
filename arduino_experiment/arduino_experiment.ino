@@ -45,35 +45,11 @@ void log_wakeup(esp_sleep_wakeup_cause_t reason) {
 }
 
 
-/*
-void run(char* msg) {
-  
-  if (hasWifi && hasIoTHub)
-  {
-    if ( messageSending)
-    {
-      
-      flashLed();
-      
-      float tempC = readTemp(0);
-      
-      sendData(msg, tempC, messageTemplate);
-      
-      if(hasSevenSeg) {
-        sseg.println(tempC);
-        sseg.writeDisplay();
-      }
-    }
-    else
-    {
-      Esp32MQTTClient_Check();
-    }
-  } else {
-    flashLedErr();
-  }
-  
-}
-*/
+int cnt = 0;
+const char *messageTemplate = "{\"messageId\":%d,\"Temperature\":%f,\"Pressure\":%f,\"Humidity\":%f,\"bat\":%d}"; 
+#define MSG_MAX_LEN 1024
+#define SEND_INTERVAL_MS 60000
+static uint64_t lastSend = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -82,8 +58,8 @@ void setup() {
   Wire.begin();
 
   bmeSensor = new BMESensor();
-  dallasSensor = new DallasSensor(DALLAS_PIN);
-  sevenSeg = new SevenSeg();
+  //dallasSensor = new DallasSensor(DALLAS_PIN);
+  //sevenSeg = new SevenSeg();
   wifiNet = new WifiNet(wifiSsid, wifiPw);
   iotConn = new IotConn(wifiNet, iotConnString);
   
@@ -94,53 +70,45 @@ void setup() {
   ++bootCnt;
   Serial.println("Boot number: " + String(bootCnt));
   
-  /*
+  /* sleep code */
   esp_sleep_wakeup_cause_t reason;
   reason = esp_sleep_get_wakeup_cause();
   log_wakeup(reason);
   if(bootCnt==1 || reason==ESP_SLEEP_WAKEUP_TIMER) 
   {
-    Serial.println("Starting connecting WiFi.");
-    initWifi();
-    
-    if(hasWifi) {
-      Serial.print("Wifi done (ms): ");
-      Serial.println(millis()-start_interval_ms);
-      initHub();
-    
-      Serial.print("IoTHUB done (ms): ");
-      Serial.println(millis()-start_interval_ms);
-      Wire.begin();
-      initSevenSeg();
-      
-      
-      Serial.println("Start sending events.");
-      randomSeed(analogRead(0));
-      
-      sensors.begin();
-      //readOneWireAddresses();
-      if(sensors.getAddress(tempDeviceAddress, oneWireDev)){
-        readAddress(tempDeviceAddress);
-        foundOneWireDevice = true;
-        Serial.print("Device found ");
-        Serial.println(addr);
-      } else {
-        Serial.println("Device NOT FOUND");
-      }
-    
-      pinMode(ledPin, OUTPUT);
-      
-      Serial.print("OneWire done (ms): ");
+    bmeSensor = new BMESensor();
+    wifiNet = new WifiNet(wifiSsid, wifiPw);
+    iotConn = new IotConn(wifiNet, iotConnString);
+     
+    if (iotConn->isConnected() && bmeSensor->isConnected())
+    {
+      Serial.print("IoTConn done (ms): ");
       Serial.println(millis()-start_interval_ms);
 
-      char devMsg[MESSAGE_MAX_LEN];
-      snprintf(devMsg, MESSAGE_MAX_LEN, devData, bootCnt, (int)reason);
+      while(! iotConn->messageSending)
+      {
+        Esp32MQTTClient_Check();
+        delay(100);
+      }
+      flashLed();
       
-      run(devMsg);
+      int battery = analogRead(A13);
+      float temp = bmeSensor->readTemp();
+      float pres = bmeSensor->readPressure();
+      float hum = bmeSensor->readHumidity();
+  
+      char messagePayload[MSG_MAX_LEN];
+      snprintf(messagePayload, MSG_MAX_LEN, messageTemplate, cnt++, temp, pres, hum, battery*2);
+      iotConn->sendData(messagePayload);
       
     } else {
-      Serial.print("No wifi! (ms): ");
+      if(!iotConn->isConnected()) {
+        Serial.print("No IoT conn, (ms): ");
+      } else if(!bmeSensor->isConnected()) {
+        Serial.print("No BME sensor, (ms): ");
+      }
       Serial.println(millis()-start_interval_ms);
+      flashLedErr();
     }
     
     if(bootCnt==1 || reason==ESP_SLEEP_WAKEUP_TIMER) {
@@ -152,16 +120,7 @@ void setup() {
   Serial.println((millis()-start_interval_ms));
   Serial.println("Go sleep");
   esp_deep_sleep_start();  
-  */
 }
-
-int cnt = 0;
-const char *messageTemplate = "{\"messageId\":%d,\"Temperature\":%f,\"Pressure\":%f,\"Humidity\":%f,\"bat\":%d}"; 
-#define MSG_MAX_LEN 1024
-
-#define SEND_INTERVAL_MS 60000
-
-static uint64_t lastSend = 0;
 
 void loop() {
   if((int)(millis() - lastSend ) > SEND_INTERVAL_MS ) {
