@@ -6,8 +6,10 @@
 /*  "HostName=<host_name>;DeviceId=<device_id>;SharedAccessSignature=<device_sas_token>"    */
 
 #define MESSAGE_MAX_LEN 256
+#define MESSAGE_ACK_TIMEOUT_MS 5000
 
 bool IotConn::messageSending = true;
+bool IotConn::ack = false;
 
 void IotConn::sendData(char* msg) {
     Serial.println("sendData called with msg:");
@@ -18,6 +20,12 @@ void IotConn::sendData(char* msg) {
     Serial.println(msg);
     EVENT_INSTANCE* message = Esp32MQTTClient_Event_Generate(msg, MESSAGE);
     Esp32MQTTClient_SendEventInstance(message);
+    sendTime = millis();
+    ack = false;
+}
+
+bool IotConn::messageDone() {
+  return ack || (int)(millis()-sendTime)>MESSAGE_ACK_TIMEOUT_MS;
 }
 
 void IotConn::SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result)
@@ -25,6 +33,7 @@ void IotConn::SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result)
   if (result == IOTHUB_CLIENT_CONFIRMATION_OK)
   {
     Serial.println("Send Confirmation Callback finished.");
+    ack = true;
   } else {
     Serial.print("SendConfirmationCallback failed: ");
     Serial.println(result);

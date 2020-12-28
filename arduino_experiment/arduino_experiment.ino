@@ -10,7 +10,7 @@
 #include "bme_sensor.h"
 #include "dallas_sensor.h"
 
-unsigned long start_interval_ms = 0;
+
 #define DALLAS_PIN 15
 
 BMESensor *bmeSensor;
@@ -29,7 +29,7 @@ extern int ledPin;
 
 // deep sleep
 #define uS_TO_S_FACTOR 1000000
-#define SLEEP_TIME_SEC 300
+#define SLEEP_TIME_SEC 120
 RTC_DATA_ATTR int bootCnt = 0;
 
 void log_wakeup(esp_sleep_wakeup_cause_t reason) {
@@ -49,7 +49,8 @@ int cnt = 0;
 const char *messageTemplate = "{\"messageId\":%d,\"Temperature\":%f,\"Pressure\":%f,\"Humidity\":%f,\"bat\":%d}"; 
 #define MSG_MAX_LEN 1024
 #define SEND_INTERVAL_MS 60000
-static uint64_t lastSend = 0;
+
+unsigned long start_interval_ms = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -85,11 +86,6 @@ void setup() {
       Serial.print("IoTConn done (ms): ");
       Serial.println(millis()-start_interval_ms);
 
-      while(! iotConn->messageSending)
-      {
-        Esp32MQTTClient_Check();
-        delay(100);
-      }
       flashLed();
       
       int battery = analogRead(A13);
@@ -100,6 +96,12 @@ void setup() {
       char messagePayload[MSG_MAX_LEN];
       snprintf(messagePayload, MSG_MAX_LEN, messageTemplate, cnt++, temp, pres, hum, battery*2);
       iotConn->sendData(messagePayload);
+
+      while(!iotConn->messageDone())
+      {
+        Esp32MQTTClient_Check();
+        delay(100);
+      }
       
     } else {
       if(!iotConn->isConnected()) {
@@ -122,6 +124,7 @@ void setup() {
   esp_deep_sleep_start();  
 }
 
+static uint64_t lastSend = 0;
 void loop() {
   if((int)(millis() - lastSend ) > SEND_INTERVAL_MS ) {
     int battery = analogRead(A13);

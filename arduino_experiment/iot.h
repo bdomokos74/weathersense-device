@@ -8,7 +8,8 @@ class IotConn {
 private:
   int messageCount = 0;
   bool hasIoTHub = false;
-  
+  static bool ack;
+  unsigned long sendTime;
   
   static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result);
   static void MessageCallback(const char* payLoad, int size);
@@ -18,6 +19,7 @@ public:
   static bool messageSending;
   IotConn(WifiNet *wifiNet, char* connectionString);
   void sendData(char* msg);
+  bool messageDone();
   bool isConnected();
 };
 
