@@ -3,9 +3,9 @@
 WifiNet::WifiNet(char* ssid, char* password) {  
   WiFi.mode(WIFI_AP);
   WiFi.begin(ssid, password);
-  int retry = 5;
+  int retry = 15;
   while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
+    delay(500);
     Serial.print(".");
     if(retry==0) {
       hasWifi = false;

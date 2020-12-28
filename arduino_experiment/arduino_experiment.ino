@@ -9,100 +9,130 @@
 #include "sevenseg.h"
 #include "bme_sensor.h"
 #include "dallas_sensor.h"
+#include "deep_sleep.h"
 
-
+//#define DO_SEVENSEG 1
+#define DO_SLEEP 1
+#define SLEEP_TIME_SEC 120
 #define DALLAS_PIN 15
+#define LED_PIN 13
+#define BME_ADDR 0x70
 
-BMESensor *bmeSensor;
-DallasSensor *dallasSensor;
-SevenSeg *sevenSeg;
-WifiNet *wifiNet;
-IotConn *iotConn;
-
-// Instance params
 char* wifiSsid = WIFI_SSID;
 char* wifiPw = WIFI_PW;
 char* iotConnString = DEV_CONN_STR;
 
-// LED
-extern int ledPin;
+BMESensor *bmeSensor;
+DallasSensor *dallasSensor;
+#ifdef DO_SEVENSEG
+SevenSeg *sevenSeg;
+#endif
+WifiNet *wifiNet;
+IotConn *iotConn;
+LedUtil * led;
 
-// deep sleep
-#define uS_TO_S_FACTOR 1000000
-#define SLEEP_TIME_SEC 120
-RTC_DATA_ATTR int bootCnt = 0;
-
-void log_wakeup(esp_sleep_wakeup_cause_t reason) {
-  
-  switch(reason) {
-  case ESP_SLEEP_WAKEUP_EXT0 : Serial.println("Wakeup caused by external signal using RTC_IO"); break;
-    case ESP_SLEEP_WAKEUP_EXT1 : Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
-    case ESP_SLEEP_WAKEUP_TIMER : Serial.println("Wakeup caused by timer"); break;
-    case ESP_SLEEP_WAKEUP_TOUCHPAD : Serial.println("Wakeup caused by touchpad"); break;
-    case ESP_SLEEP_WAKEUP_ULP : Serial.println("Wakeup caused by ULP program"); break;
-    default : Serial.printf("Wakeup was not caused by deep sleep: %d\n", reason); break;
-  }
-}
-
-
-int cnt = 0;
-const char *messageTemplate = "{\"messageId\":%d,\"Temperature\":%f,\"Pressure\":%f,\"Humidity\":%f,\"bat\":%d}"; 
-#define MSG_MAX_LEN 1024
+const char *bmeMessageTemplate = "{\"messageId\":%d,\"Temperature\":%.2f,\"Pressure\":%.2f,\"Humidity\":%.2f,\"bat\":%.2f,\"offset\":%d}\n";
+const char *dallasMessageTemplate = "{\"messageId\":%d,\"Temperature\":%.2f,\"bat\":%.2f,\"offset\":%d}\n"; 
+#define MSG_MAX_LEN 120
 #define SEND_INTERVAL_MS 60000
 
 unsigned long start_interval_ms = 0;
 
+#define BATCH_SIZE 15
+#define RTC_BUF_SIZE 3072
+RTC_DATA_ATTR unsigned long startTimestamp;
+RTC_DATA_ATTR int bootCnt = 0;
+RTC_DATA_ATTR char dataBuf[RTC_BUF_SIZE];
+RTC_DATA_ATTR char *bufPoi = dataBuf;
+RTC_DATA_ATTR int numStoredMeasurements = 0;
+RTC_DATA_ATTR int msgId = 0;
+
 void setup() {
+  start_interval_ms = millis();
   Serial.begin(115200);
   while(!Serial) {};
-  
   Wire.begin();
-
-  bmeSensor = new BMESensor();
-  //dallasSensor = new DallasSensor(DALLAS_PIN);
-  //sevenSeg = new SevenSeg();
-  wifiNet = new WifiNet(wifiSsid, wifiPw);
-  iotConn = new IotConn(wifiNet, iotConnString);
-  
-  ledPin = 13;
-  start_interval_ms = millis();
- 
+  led = new LedUtil(LED_PIN);  
   Serial.println("ESP32 Device Initializing..."); 
+
+#ifdef DO_SLEEP
   ++bootCnt;
   Serial.println("Boot number: " + String(bootCnt));
-  
+
   /* sleep code */
   esp_sleep_wakeup_cause_t reason;
   reason = esp_sleep_get_wakeup_cause();
-  log_wakeup(reason);
+  DeepSleep::log_wakeup(reason);
   if(bootCnt==1 || reason==ESP_SLEEP_WAKEUP_TIMER) 
   {
+    float temp;
+    float pres;
+    float hum;
+    int bat = analogRead(A13);
+    float battery = (bat*2)/4095.0F*3.3F;
+    int remainingLen = RTC_BUF_SIZE-(int)(bufPoi-dataBuf);
+    int writtenChars;
     bmeSensor = new BMESensor();
+    if(numStoredMeasurements==0) startTimestamp = millis();
+    unsigned long curr = numStoredMeasurements*SLEEP_TIME_SEC*1000+millis();
+    int currTime =  curr-startTimestamp;
+    Serial.print("startTimestamp= "); Serial.println(startTimestamp);
+    Serial.print("curr= "); Serial.println(curr);
+    Serial.print("currtime= "); Serial.println(currTime);
+    if(bmeSensor->isConnected()) {
+      temp = bmeSensor->readTemp();
+      pres = bmeSensor->readPressure();
+      hum = bmeSensor->readHumidity();
+      writtenChars = snprintf(bufPoi, remainingLen, bmeMessageTemplate, msgId++, temp, pres, hum, battery,currTime);
+    } else {
+      dallasSensor = new DallasSensor(DALLAS_PIN);
+      if(dallasSensor->isConnected()) {
+        temp = dallasSensor->readTemp();
+        writtenChars = snprintf(bufPoi, remainingLen, dallasMessageTemplate, msgId++, temp, battery, currTime);
+      } else {
+        // no sensors detected, flash the led and sleep
+        esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * SLEEP_TIME_SEC);
+        Serial.print("Elapsed ms: ");
+        Serial.println((millis()-start_interval_ms));
+        Serial.println("No sensors, go to sleep");
+        esp_deep_sleep_start();
+      }
+    }
+
+    bufPoi += writtenChars;
+    numStoredMeasurements++;
+
+    if(numStoredMeasurements < BATCH_SIZE) {
+        led->flashLed1();
+        Serial.print("Elapsed ms: ");
+        Serial.println((millis()-start_interval_ms));
+        Serial.println("Measurement stored: numStored/datalen:");
+        Serial.println(numStoredMeasurements);
+        Serial.println((int)(bufPoi-dataBuf));
+        Serial.println("Go to sleep");
+        esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * SLEEP_TIME_SEC);
+        esp_deep_sleep_start();
+    }
+    
     wifiNet = new WifiNet(wifiSsid, wifiPw);
     iotConn = new IotConn(wifiNet, iotConnString);
-     
-    if (iotConn->isConnected() && bmeSensor->isConnected())
+    if (iotConn->isConnected() )
     {
-      Serial.print("IoTConn done (ms): ");
+      Serial.print("IoTConn done, start time (ms): ");
       Serial.println(millis()-start_interval_ms);
-
-      flashLed();
       
-      int battery = analogRead(A13);
-      float temp = bmeSensor->readTemp();
-      float pres = bmeSensor->readPressure();
-      float hum = bmeSensor->readHumidity();
-  
-      char messagePayload[MSG_MAX_LEN];
-      snprintf(messagePayload, MSG_MAX_LEN, messageTemplate, cnt++, temp, pres, hum, battery*2);
-      iotConn->sendData(messagePayload);
+      iotConn->sendData(dataBuf);
 
       while(!iotConn->messageDone())
       {
         Esp32MQTTClient_Check();
         delay(100);
       }
-      
+
+      led->flashLed();
+      Serial.println("Sending data complete");
+      bufPoi = dataBuf;
+      numStoredMeasurements = 0;
     } else {
       if(!iotConn->isConnected()) {
         Serial.print("No IoT conn, (ms): ");
@@ -110,18 +140,25 @@ void setup() {
         Serial.print("No BME sensor, (ms): ");
       }
       Serial.println(millis()-start_interval_ms);
-      flashLedErr();
+      led->flashLedErr();
     }
-    
-    if(bootCnt==1 || reason==ESP_SLEEP_WAKEUP_TIMER) {
-      esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * SLEEP_TIME_SEC);  
-    }
+
+    Serial.print("Elapsed ms: ");
+    Serial.println((millis()-start_interval_ms));
+    Serial.println("Go sleep");
+    esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * SLEEP_TIME_SEC);  
+    esp_deep_sleep_start();  
   }
   
-  Serial.print("Elapsed ms: ");
-  Serial.println((millis()-start_interval_ms));
-  Serial.println("Go sleep");
-  esp_deep_sleep_start();  
+#else
+  bmeSensor = new BMESensor();
+  //dallasSensor = new DallasSensor(DALLAS_PIN);
+#ifdef DO_SEVENSEG
+  sevenSeg = new SevenSeg();
+#endif // DO_SEVENSEG
+  wifiNet = new WifiNet(wifiSsid, wifiPw);
+  iotConn = new IotConn(wifiNet, iotConnString);
+#endif // DO_SLEEP
 }
 
 static uint64_t lastSend = 0;
@@ -138,14 +175,15 @@ void loop() {
         Serial.print("BME Temp: ");
         Serial.print(temp);
         Serial.println("*C");
-    
+        
+#ifdef DO_SEVENSEG 
         if(sevenSeg->isConnected()) {
           sevenSeg->print(temp);
         }
-
+#endif
         if( iotConn->isConnected() ) {
             char messagePayload[MSG_MAX_LEN];
-            snprintf(messagePayload, MSG_MAX_LEN, messageTemplate, cnt++, temp, pres, hum, battery*2);
+            snprintf(messagePayload, MSG_MAX_LEN, bmeMessageTemplate, msgId++, temp, pres, hum, battery*2);
             iotConn->sendData(messagePayload);
         }
     }

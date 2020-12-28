@@ -1,8 +1,17 @@
 #ifndef LED_H
 #define LED_H
 
-void flashLedErr(); 
-void flashLed();
-void ledOn();
-void ledOff();
+class LedUtil {
+private:
+  int ledPin;
+  void _flashLed(int num, int ms);
+public:
+  LedUtil(int ledPin);
+  void flashLedErr(); 
+  void flashLed();
+  void flashLed1();
+  void ledOn();
+  void ledOff();
+};
+
 #endif
