@@ -134,3 +134,5 @@ local.settings.json
 .python_packages
 
 iot_config.h
+arduino_log_wifi_fail.txt
+

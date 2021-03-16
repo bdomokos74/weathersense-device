@@ -16,7 +16,7 @@
 #define SLEEP_TIME_SEC 120
 #define DALLAS_PIN 15
 #define LED_PIN 13
-#define BME_ADDR 0x70
+#define BME_ADDR 0x76
 
 char* wifiSsid = WIFI_SSID;
 char* wifiPw = WIFI_PW;
@@ -33,6 +33,7 @@ LedUtil * led;
 
 const char *bmeMessageTemplate = "{\"messageId\":%d,\"Temperature\":%.2f,\"Pressure\":%.2f,\"Humidity\":%.2f,\"bat\":%.2f,\"offset\":%d}\n";
 const char *dallasMessageTemplate = "{\"messageId\":%d,\"Temperature\":%.2f,\"bat\":%.2f,\"offset\":%d}\n"; 
+const char *bothTemplate = "{\"Id\":%d,\"t1\":%.2f,\"p\":%.2f,\"h\":%.2f,\"bat\":%.2f,\"offset\":%d,\"t2\":%.2f}\n";
 #define MSG_MAX_LEN 120
 #define SEND_INTERVAL_MS 60000
 
@@ -66,6 +67,7 @@ void setup() {
   if(bootCnt==1 || reason==ESP_SLEEP_WAKEUP_TIMER) 
   {
     float temp;
+    float temp2;
     float pres;
     float hum;
     int bat = analogRead(A13);
@@ -79,30 +81,37 @@ void setup() {
     Serial.print("startTimestamp= "); Serial.println(startTimestamp);
     Serial.print("curr= "); Serial.println(curr);
     Serial.print("currtime= "); Serial.println(currTime);
+    dallasSensor = new DallasSensor(DALLAS_PIN);
+    
     if(bmeSensor->isConnected()) {
       temp = bmeSensor->readTemp();
       pres = bmeSensor->readPressure();
       hum = bmeSensor->readHumidity();
-      writtenChars = snprintf(bufPoi, remainingLen, bmeMessageTemplate, msgId++, temp, pres, hum, battery,currTime);
-    } else {
-      dallasSensor = new DallasSensor(DALLAS_PIN);
-      if(dallasSensor->isConnected()) {
-        temp = dallasSensor->readTemp();
-        writtenChars = snprintf(bufPoi, remainingLen, dallasMessageTemplate, msgId++, temp, battery, currTime);
-      } else {
-        // no sensors detected, flash the led and sleep
-        esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * SLEEP_TIME_SEC);
-        Serial.print("Elapsed ms: ");
-        Serial.println((millis()-start_interval_ms));
-        Serial.println("No sensors, go to sleep");
-        esp_deep_sleep_start();
-      }
+      
+    } 
+    if(dallasSensor->isConnected()) {
+        temp2 = dallasSensor->readTemp();
     }
-
+    
+    if(bmeSensor->isConnected()&&dallasSensor->isConnected()) {
+      writtenChars = snprintf(bufPoi, remainingLen, bothTemplate, msgId++, temp, pres, hum, battery,currTime,temp2);
+    } else if( bmeSensor->isConnected()) {
+      writtenChars = snprintf(bufPoi, remainingLen, bmeMessageTemplate, msgId++, temp, pres, hum, battery,currTime);
+    } else if (dallasSensor->isConnected()) {
+       writtenChars = snprintf(bufPoi, remainingLen, dallasMessageTemplate, msgId++, temp2, battery, currTime);
+    } else {
+      // no sensors detected, flash the led and sleep
+      esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * SLEEP_TIME_SEC);
+      Serial.print("Elapsed ms: ");
+      Serial.println((millis()-start_interval_ms));
+      Serial.println("No sensors, go to sleep");
+      esp_deep_sleep_start();
+    }
+      
     bufPoi += writtenChars;
     numStoredMeasurements++;
 
-    if(numStoredMeasurements < BATCH_SIZE) {
+    if(numStoredMeasurements < BATCH_SIZE && bootCnt>1 || numStoredMeasurements == 0) {
         led->flashLed1();
         Serial.print("Elapsed ms: ");
         Serial.println((millis()-start_interval_ms));

@@ -9,6 +9,7 @@ private:
   Adafruit_BME280 bme;
 public:
   BMESensor();
+  BMESensor(int addr);
   bool isConnected();
   float readTemp();
   float readPressure();

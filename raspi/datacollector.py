@@ -35,7 +35,7 @@ async def main():
         while True:
                 temperature,pressure,humidity = bme280.readAll()
                 measTime = datetime.now().isoformat()
-                measRow = f'{{"Temperature":{temperature:0.1f},"Pressure":{pressure:0.1f},"Humidity":{humidity:0.1f}}}'
+                measRow = f'{{"Temperature":{temperature:0.2f},"Pressure":{pressure:0.2f},"Humidity":{humidity:0.2f}}}'
 
                 print(f"Sending message: {measRow}")
                 await device_client.send_message(measRow)
