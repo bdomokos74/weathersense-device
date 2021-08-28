@@ -25,3 +25,9 @@ WifiNet::WifiNet(char* ssid, char* password) {
 bool WifiNet::isConnected() {
   return hasWifi;
 }
+
+
+void WifiNet::close() {
+  WiFi.disconnect();
+  hasWifi = false;
+}

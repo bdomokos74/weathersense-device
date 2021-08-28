@@ -10,6 +10,7 @@ private:
 public:
   WifiNet(char* ssid, char* pw);
   bool isConnected();
+  void close();
 };
 
 #endif

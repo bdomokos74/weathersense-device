@@ -1,0 +1,685 @@
+10:27:09.249 ->   ets Jun  8 2016 00:22:57
+10:27:17.184 -> 
+10:27:17.184 -> rst:0x10 (RTCWDT_RTC_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+10:27:17.184 -> configsip: 0, SPIWP:0xee
+10:27:17.184 -> clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+10:27:17.184 -> mode:DIO, clock div:1
+10:27:17.184 -> load:0x3fff0018,len:4
+10:27:17.184 -> load:0x3fff001c,len:1044
+10:27:17.184 -> load:0x40078000,len:10124
+10:27:17.184 -> load:0x40080400,len:5856
+10:27:17.184 -> entry 0x400806a8
+10:27:17.515 -> ESP32 Device Initializing...
+10:27:17.515 -> BMESensor constructor
+10:27:17.648 -> BME found: 0x60
+10:27:17.648 -> DallasSensor Constructor
+10:27:17.681 -> DallasSensor not found.
+10:27:17.681 -> Found seven seg at 0x70
+10:27:27.568 -> startTimestamp= 10083
+10:27:27.568 -> curr= 10083
+10:27:27.568 -> currtime= 0
+10:27:27.568 -> DallasSensor Constructor
+10:27:27.601 -> DallasSensor not found.
+10:27:27.601 -> flashing led: 13
+10:27:27.933 -> Elapsed ms: 10397
+10:27:27.933 -> Measurement stored: numStored/datalen:
+10:27:27.933 -> 1
+10:27:27.933 -> 93
+10:27:38.009 -> startTimestamp= 10083
+10:27:38.009 -> curr= 140522
+10:27:38.009 -> currtime= 130439
+10:27:38.009 -> DallasSensor Constructor
+10:27:38.042 -> DallasSensor not found.
+10:27:38.042 -> flashing led: 13
+10:27:38.373 -> Elapsed ms: 20835
+10:27:38.373 -> Measurement stored: numStored/datalen:
+10:27:38.373 -> 2
+10:27:38.373 -> 191
+10:27:48.446 -> startTimestamp= 10083
+10:27:48.446 -> curr= 270960
+10:27:48.446 -> currtime= 260877
+10:27:48.446 -> DallasSensor Constructor
+10:27:48.604 -> DallasSensor not found.
+10:27:48.604 -> flashing led: 13
+10:27:48.810 -> Elapsed ms: 31273
+10:27:48.810 -> Measurement stored: numStored/datalen:
+10:27:48.810 -> 3
+10:27:48.810 -> 289
+10:27:58.885 -> startTimestamp= 10083
+10:27:58.885 -> curr= 401398
+10:27:58.885 -> currtime= 391315
+10:27:58.885 -> DallasSensor Constructor
+10:27:59.010 -> DallasSensor not found.
+10:27:59.010 -> flashing led: 13
+10:27:59.249 -> Elapsed ms: 41711
+10:27:59.249 -> Measurement stored: numStored/datalen:
+10:27:59.249 -> 4
+10:27:59.249 -> 387
+10:28:09.325 -> startTimestamp= 10083
+10:28:09.325 -> curr= 531836
+10:28:09.325 -> currtime= 521753
+10:28:09.325 -> DallasSensor Constructor
+10:28:09.462 -> DallasSensor not found.
+10:28:09.546 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 0 - WIFI_READY
+10:28:09.546 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:28:09.546 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:28:09.987 -> .....[D][WiFiGeneric.cpp:374] _eventCallback(): Event: 4 - STA_CONNECTED
+10:28:12.189 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 7 - STA_GOT_IP
+10:28:12.189 -> [D][WiFiGeneric.cpp:419] _eventCallback(): STA IP: 192.168.0.76, MASK: 255.255.255.0, GW: 192.168.0.1
+10:28:12.504 -> .
+10:28:12.504 -> Wifi Connected: UPC3707129
+10:28:12.504 -> WiFi IP: 192.168.0.76
+10:28:12.504 -> Connecting IoT
+10:28:12.504 -> Info: Initializing SNTP
+
+10:28:13.498 -> Info: SNTP initialization complete
+
+10:28:13.498 -> Info: IoT Hub SDK for C, version 1.1.23
+
+10:28:16.082 -> Info: >>>Connection status: connected
+
+10:28:16.082 -> Info: >>>Received Message [0], Size=4 Message test
+
+10:28:16.082 -> IoT Hub successfully connected
+10:28:16.082 -> IoTConn done, start time (ms): 58538
+10:28:16.082 -> sendData called with msg:
+10:28:16.082 -> {"messageId":0,"Temperature":24.72,"Pressure":969.33,"Humidity":46.48,"bat":1.65,"offset":0}
+10:28:16.082 -> {"messageId":1,"Temperature":24.70,"Pressure":969.33,"Humidity":46.57,"bat":1.08,"offset":130439}
+10:28:16.082 -> {"messageId":2,"Temperature":24.67,"Pressure":969.32,"Humidity":46.54,"bat":1.06,"offset":260877}
+10:28:16.082 -> {"messageId":3,"Temperature":24.69,"Pressure":969.35,"Humidity":46.42,"bat":0.99,"offset":391315}
+10:28:16.228 -> {"messageId":4,"Temperature":24.72,"Pressure":969.35,"Humidity":46.51,"bat":1.11,"offset":521753}
+10:28:16.228 -> 
+10:28:16.228 -> Info: >>>IoTHubClient_LL_SendEventAsync accepted message for transmission to IoT Hub.
+
+10:28:16.512 -> Info: >>>Confirmation[0] received for message tracking id = 0 with result = IOTHUB_CLIENT_CONFIRMATION_OK
+
+10:28:16.512 -> Send Confirmation Callback finished.
+10:28:18.534 -> IotConn::DeviceTwinCallback called
+10:28:18.534 -> updatestate=
+10:28:18.534 -> 0
+10:28:18.534 -> {"desired":{"$version":1},"reported":{"$version":1}}
+10:28:21.515 -> flashing led: 13
+10:28:22.409 -> Sending data complete
+10:28:22.528 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 5 - STA_DISCONNECTED
+10:28:22.528 -> [W][WiFiGeneric.cpp:391] _eventCallback(): Reason: 8 - ASSOC_LEAVE
+10:28:32.551 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:28:32.551 -> startTimestamp= 75034
+10:28:32.551 -> curr= 75034
+10:28:32.551 -> currtime= 0
+10:28:32.551 -> DallasSensor Constructor
+10:28:32.551 -> DallasSensor not found.
+10:28:32.688 -> flashing led: 13
+10:28:32.881 -> Elapsed ms: 75351
+10:28:32.881 -> Measurement stored: numStored/datalen:
+10:28:32.881 -> 1
+10:28:32.881 -> 93
+10:28:42.991 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:28:42.991 -> startTimestamp= 75034
+10:28:42.991 -> curr= 205476
+10:28:42.991 -> currtime= 130442
+10:28:42.991 -> DallasSensor Constructor
+10:28:43.063 -> DallasSensor not found.
+10:28:43.063 -> flashing led: 13
+10:28:43.322 -> Elapsed ms: 85793
+10:28:43.322 -> Measurement stored: numStored/datalen:
+10:28:43.322 -> 2
+10:28:43.322 -> 191
+10:28:53.430 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:28:53.430 -> startTimestamp= 75034
+10:28:53.430 -> curr= 335918
+10:28:53.430 -> currtime= 260884
+10:28:53.430 -> DallasSensor Constructor
+10:28:53.500 -> DallasSensor not found.
+10:28:53.500 -> flashing led: 13
+10:28:53.761 -> Elapsed ms: 96235
+10:28:53.761 -> Measurement stored: numStored/datalen:
+10:28:53.761 -> 3
+10:28:53.761 -> 289
+10:29:03.881 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:29:03.881 -> startTimestamp= 75034
+10:29:03.881 -> curr= 466360
+10:29:03.881 -> currtime= 391326
+10:29:03.881 -> DallasSensor Constructor
+10:29:03.881 -> DallasSensor not found.
+10:29:03.954 -> flashing led: 13
+10:29:04.212 -> Elapsed ms: 106677
+10:29:04.212 -> Measurement stored: numStored/datalen:
+10:29:04.212 -> 4
+10:29:04.212 -> 387
+10:29:14.297 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:29:14.297 -> startTimestamp= 75034
+10:29:14.297 -> curr= 596802
+10:29:14.297 -> currtime= 521768
+10:29:14.297 -> DallasSensor Constructor
+10:29:14.352 -> DallasSensor not found.
+10:29:14.352 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:29:14.352 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:29:14.859 -> .....[D][WiFiGeneric.cpp:374] _eventCallback(): Event: 4 - STA_CONNECTED
+10:29:17.351 -> .[D][WiFiGeneric.cpp:374] _eventCallback(): Event: 7 - STA_GOT_IP
+10:29:17.451 -> [D][WiFiGeneric.cpp:419] _eventCallback(): STA IP: 192.168.0.76, MASK: 255.255.255.0, GW: 192.168.0.1
+10:29:17.849 -> .
+10:29:17.849 -> Wifi Connected: UPC3707129
+10:29:17.849 -> WiFi IP: 192.168.0.76
+10:29:17.849 -> Connecting IoT
+10:29:17.849 -> Info: Initializing SNTP
+
+10:29:18.843 -> Info: SNTP initialization complete
+
+10:29:18.843 -> Info: IoT Hub SDK for C, version 1.1.23
+
+10:29:19.472 -> IoT Hub successfully connected
+10:29:19.472 -> IoTConn done, start time (ms): 121926
+10:29:19.472 -> sendData called with msg:
+10:29:19.472 -> {"messageId":5,"Temperature":24.75,"Pressure":969.33,"Humidity":45.97,"bat":0.00,"offset":0}
+10:29:19.472 -> {"messageId":6,"Temperature":24.75,"Pressure":969.27,"Humidity":46.07,"bat":0.00,"offset":130442}
+10:29:19.575 -> {"messageId":7,"Temperature":24.79,"Pressure":969.31,"Humidity":46.07,"bat":0.00,"offset":260884}
+10:29:19.575 -> {"messageId":8,"Temperature":24.82,"Pressure":969.30,"Humidity":46.16,"bat":0.00,"offset":391326}
+10:29:19.575 -> {"messageId":9,"Temperature":24.88,"Pressure":969.32,"Humidity":45.91,"bat":0.00,"offset":521768}
+10:29:19.575 -> 
+10:29:19.575 -> Info: >>>IoTHubClient_LL_SendEventAsync accepted message for transmission to IoT Hub.
+
+10:29:20.797 -> Info: >>>Connection status: connected
+
+10:29:20.797 -> IotConn::STATUS callback -> result: 0 reason: 0
+10:29:20.797 -> Info: >>>Received Message [1], Size=4 Message blah
+
+10:29:20.797 -> IotConn::Message callback:
+10:29:20.797 -> blah
+10:29:21.327 -> Info: >>>Confirmation[0] received for message tracking id = 0 with result = IOTHUB_CLIENT_CONFIRMATION_OK
+
+10:29:21.327 -> Send Confirmation Callback finished.
+10:29:21.327 -> Entering shell loop...
+10:29:21.327 -> Info: >>>IoTHubClient_LL_SendReportedState accepted state for transmission to IoT Hub.
+
+10:29:21.525 -> IotConn::DeviceTwinCallback called
+10:29:21.525 -> updatestate=
+10:29:21.525 -> 0
+10:29:21.525 -> {"desired":{"$version":1},"reported":{"$version":1}}
+10:29:21.525 -> Info: >>>Confirmation[1] received for state tracking id = 1 with state code = 400
+
+10:29:21.525 -> Error: Time:Sat Aug 28 08:29:21 2021 File:/home/pi/.arduino15/packages/esp32/hardware/esp32/1.0.6/libraries/AzureIoT/src/Esp32MQTTClient.cpp Func:ReportConfirmationCallback Line:248 Report confirmation failed with state code 400
+
+10:29:21.599 -> IotConn::ReportConfirmation callback -> status: 400
+10:29:31.371 -> Error: Time:Sat Aug 28 08:29:31 2021 File:/home/pi/.arduino15/packages/esp32/hardware/esp32/1.0.6/libraries/AzureIoT/src/Esp32MQTTClient.cpp Func:SendEventOnce Line:316 Waiting for send confirmation, time is up 10042
+
+10:29:31.371 -> Info: >>>Re-connect.
+
+10:29:31.371 -> Info: Initializing SNTP
+
+10:29:32.377 -> Info: SNTP initialization complete
+
+10:29:32.377 -> Info: IoT Hub SDK for C, version 1.1.23
+
+10:29:32.495 -> Info: >>>IoTHubClient_LL_SendReportedState accepted state for transmission to IoT Hub.
+
+10:30:14.310 -> E (193016) task_wdt: Task watchdog got triggered. The following tasks did not reset the watchdog in time:
+10:30:14.310 -> E (193016) task_wdt:  - loopTask (CPU 1)
+10:30:14.310 -> E (193016) task_wdt: Tasks currently running:
+10:30:14.310 -> E (193016) task_wdt: CPU 0: IDLE0
+10:30:14.310 -> E (193016) task_wdt: CPU 1: IDLE1
+10:30:14.367 -> E (193016) task_wdt: Aborting.
+10:30:14.367 -> abort() was called at PC 0x401412ec on core 0
+10:30:14.367 -> 
+10:30:14.367 -> ELF file SHA256: 0000000000000000
+10:30:14.367 -> 
+10:30:14.367 -> Backtrace: 0x40088e88:0x3ffbfb20 0x40089105:0x3ffbfb40 0x401412ec:0x3ffbfb60 0x400876f1:0x3ffbfb80 0x40172d1f:0x3ffbc100 0x40142b2f:0x3ffbc120 0x4008b8d5:0x3ffbc140 0x4008a116:0x3ffbc160
+10:30:14.367 -> 
+10:30:14.367 -> Rebooting...
+10:30:14.367 -> ets Jun  8 2016 00:22:57
+10:30:14.367 -> 
+10:30:14.367 -> rst:0xc (SW_CPU_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+10:30:14.367 -> configsip: 0, SPIWP:0xee
+10:30:14.367 -> clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+10:30:14.367 -> mode:DIO, clock div:1
+10:30:14.367 -> load:0x3fff0018,len:4
+10:30:14.367 -> load:0x3fff001c,len:1044
+10:30:14.367 -> load:0x40078000,len:10124
+10:30:14.367 -> load:0x40080400,len:5856
+10:30:14.367 -> entry 0x400806a8
+10:30:14.708 -> ESP32 Device Initializing...
+10:30:14.708 -> BMESensor constructor
+10:30:14.840 -> BME found: 0x60
+10:30:14.840 -> DallasSensor Constructor
+10:30:14.874 -> DallasSensor not found.
+10:30:14.874 -> Found seven seg at 0x70
+10:30:24.768 -> startTimestamp= 10083
+10:30:24.768 -> curr= 10083
+10:30:24.768 -> currtime= 0
+10:30:24.768 -> DallasSensor Constructor
+10:30:24.818 -> DallasSensor not found.
+10:30:24.818 -> flashing led: 13
+10:30:25.099 -> Elapsed ms: 10397
+10:30:25.099 -> Measurement stored: numStored/datalen:
+10:30:25.099 -> 1
+10:30:25.099 -> 93
+10:30:35.214 -> startTimestamp= 10083
+10:30:35.214 -> curr= 140522
+10:30:35.214 -> currtime= 130439
+10:30:35.214 -> DallasSensor Constructor
+10:30:35.271 -> DallasSensor not found.
+10:30:35.271 -> flashing led: 13
+10:30:35.545 -> Elapsed ms: 20835
+10:30:35.545 -> Measurement stored: numStored/datalen:
+10:30:35.545 -> 2
+10:30:35.545 -> 191
+10:30:45.654 -> startTimestamp= 10083
+10:30:45.654 -> curr= 270960
+10:30:45.654 -> currtime= 260877
+10:30:45.654 -> DallasSensor Constructor
+10:30:45.715 -> DallasSensor not found.
+10:30:45.715 -> flashing led: 13
+10:30:45.985 -> Elapsed ms: 31273
+10:30:45.985 -> Measurement stored: numStored/datalen:
+10:30:45.985 -> 3
+10:30:45.985 -> 289
+10:30:56.095 -> startTimestamp= 10083
+10:30:56.095 -> curr= 401398
+10:30:56.095 -> currtime= 391315
+10:30:56.095 -> DallasSensor Constructor
+10:30:56.148 -> DallasSensor not found.
+10:30:56.148 -> flashing led: 13
+10:30:56.427 -> Elapsed ms: 41711
+10:30:56.427 -> Measurement stored: numStored/datalen:
+10:30:56.427 -> 4
+10:30:56.427 -> 387
+10:31:06.537 -> startTimestamp= 10083
+10:31:06.537 -> curr= 531836
+10:31:06.537 -> currtime= 521753
+10:31:06.537 -> DallasSensor Constructor
+10:31:06.537 -> DallasSensor not found.
+10:31:06.702 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 0 - WIFI_READY
+10:31:06.702 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:31:06.702 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:31:07.166 -> ....[D][WiFiGeneric.cpp:374] _eventCallback(): Event: 5 - STA_DISCONNECTED
+10:31:09.189 -> [W][WiFiGeneric.cpp:391] _eventCallback(): Reason: 202 - AUTH_FAIL
+10:31:09.189 -> ............
+10:31:14.691 -> Wifi connect failed: UPC3707129
+10:31:14.691 -> No WiFi, skip IoT
+10:31:14.691 -> No IoT conn, (ms): 59977
+10:31:14.691 -> flashing led: 13
+10:31:26.590 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:31:26.590 -> startTimestamp= 10083
+10:31:26.590 -> curr= 671901
+10:31:26.590 -> currtime= 661818
+10:31:26.590 -> DallasSensor Constructor
+10:31:26.643 -> DallasSensor not found.
+10:31:26.643 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:31:26.643 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:31:27.120 -> .....[D][WiFiGeneric.cpp:374] _eventCallback(): Event: 4 - STA_CONNECTED
+10:31:29.274 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 7 - STA_GOT_IP
+10:31:29.274 -> [D][WiFiGeneric.cpp:419] _eventCallback(): STA IP: 192.168.0.76, MASK: 255.255.255.0, GW: 192.168.0.1
+10:31:29.638 -> .
+10:31:29.638 -> Wifi Connected: UPC3707129
+10:31:29.638 -> WiFi IP: 192.168.0.76
+10:31:29.638 -> Connecting IoT
+10:31:29.638 -> Info: Initializing SNTP
+
+10:31:30.633 -> Info: SNTP initialization complete
+
+10:31:30.633 -> Info: IoT Hub SDK for C, version 1.1.23
+
+10:31:49.158 -> Error: Time:Sat Aug 28 08:31:49 2021 File:/home/pi/.arduino15/packages/esp32/hardware/esp32/1.0.6/libraries/AzureIoT/src/az_iot/c-utility/pal/socket_async.c Func:socket_async_is_create_complete Line:196 Socket select errset non-empty: 113
+
+10:31:49.158 -> Info: socket_async_is_create_complete failure
+
+10:31:49.209 -> Info: >>>Connection status: disconnected
+
+10:31:49.209 -> Info: >>>Connection status: disconnected
+
+10:31:49.209 -> Info: tlsio_openssl_close has been called when in neither TLSIO_STATE_OPEN nor TLSIO_STATE_ERROR.
+
+10:31:52.340 -> Info: >>>Connection status: connected
+
+10:31:52.340 -> IoT Hub successfully connected
+10:31:52.340 -> IoTConn done, start time (ms): 97617
+10:31:52.340 -> sendData called with msg:
+10:31:52.340 -> {"messageId":0,"Temperature":24.88,"Pressure":969.29,"Humidity":45.63,"bat":1.32,"offset":0}
+10:31:52.340 -> {"messageId":1,"Temperature":24.87,"Pressure":969.30,"Humidity":45.62,"bat":0.98,"offset":130439}
+10:31:52.393 -> {"messageId":2,"Temperature":24.87,"Pressure":969.29,"Humidity":45.64,"bat":0.91,"offset":260877}
+10:31:52.393 -> {"messageId":3,"Temperature":24.87,"Pressure":969.30,"Humidity":45.75,"bat":0.88,"offset":391315}
+10:31:52.393 -> {"messageId":4,"Temperature":24.87,"Pressure":969.30,"Humidity":45.84,"bat":1.11,"offset":521753}
+10:31:52.393 -> {"messageId":5,"Temperature":24.87,"Pressure":969.24,"Humidity":46.02,"bat":0.00,"offset":661818}
+10:31:52.393 -> 
+10:31:52.393 -> Info: >>>Re-connect.
+
+10:31:52.393 -> Info: Initializing SNTP
+
+10:31:53.400 -> Info: SNTP initialization complete
+
+10:31:53.400 -> Info: IoT Hub SDK for C, version 1.1.23
+
+10:31:53.400 -> Info: >>>IoTHubClient_LL_SendEventAsync accepted message for transmission to IoT Hub.
+
+10:31:54.659 -> Info: >>>Connection status: connected
+
+10:31:54.659 -> IotConn::STATUS callback -> result: 0 reason: 0
+10:31:55.090 -> IotConn::DeviceTwinCallback called
+10:31:55.090 -> updatestate=
+10:31:55.090 -> 0
+10:31:55.090 -> {"desired":{"$version":1},"reported":{"$version":1}}
+10:31:55.289 -> Info: >>>Confirmation[0] received for message tracking id = 0 with result = IOTHUB_CLIENT_CONFIRMATION_OK
+
+10:31:55.289 -> Send Confirmation Callback finished.
+10:32:00.292 -> flashing led: 13
+10:32:01.186 -> Sending data complete
+10:32:01.220 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 5 - STA_DISCONNECTED
+10:32:01.220 -> [W][WiFiGeneric.cpp:391] _eventCallback(): Reason: 8 - ASSOC_LEAVE
+10:32:11.295 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:32:11.295 -> startTimestamp= 116610
+10:32:11.295 -> curr= 116610
+10:32:11.295 -> currtime= 0
+10:32:11.295 -> DallasSensor Constructor
+10:32:11.350 -> DallasSensor not found.
+10:32:11.350 -> flashing led: 13
+10:32:11.626 -> Elapsed ms: 116927
+10:32:11.626 -> Measurement stored: numStored/datalen:
+10:32:11.626 -> 1
+10:32:11.626 -> 93
+10:32:21.767 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:32:21.767 -> startTimestamp= 116610
+10:32:21.767 -> curr= 247052
+10:32:21.767 -> currtime= 130442
+10:32:21.767 -> DallasSensor Constructor
+10:32:21.767 -> DallasSensor not found.
+10:32:21.767 -> flashing led: 13
+10:32:22.066 -> Elapsed ms: 127369
+10:32:22.066 -> Measurement stored: numStored/datalen:
+10:32:22.066 -> 2
+10:32:22.066 -> 191
+10:32:32.177 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:32:32.177 -> startTimestamp= 116610
+10:32:32.177 -> curr= 377494
+10:32:32.177 -> currtime= 260884
+10:32:32.177 -> DallasSensor Constructor
+10:32:32.232 -> DallasSensor not found.
+10:32:32.232 -> flashing led: 13
+10:32:32.508 -> Elapsed ms: 137811
+10:32:32.508 -> Measurement stored: numStored/datalen:
+10:32:32.508 -> 3
+10:32:32.508 -> 289
+10:32:42.618 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:32:42.618 -> startTimestamp= 116610
+10:32:42.618 -> curr= 507936
+10:32:42.618 -> currtime= 391326
+10:32:42.618 -> DallasSensor Constructor
+10:32:42.669 -> DallasSensor not found.
+10:32:42.669 -> flashing led: 13
+10:32:42.982 -> Elapsed ms: 148253
+10:32:42.982 -> Measurement stored: numStored/datalen:
+10:32:42.982 -> 4
+10:32:42.982 -> 387
+10:32:53.060 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:32:53.060 -> startTimestamp= 116610
+10:32:53.060 -> curr= 638378
+10:32:53.060 -> currtime= 521768
+10:32:53.060 -> DallasSensor Constructor
+10:32:53.104 -> DallasSensor not found.
+10:32:53.104 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:32:53.104 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:32:53.623 -> .....[D][WiFiGeneric.cpp:374] _eventCallback(): Event: 4 - STA_CONNECTED
+10:32:56.109 -> ..[D][WiFiGeneric.cpp:374] _eventCallback(): Event: 7 - STA_GOT_IP
+10:32:56.639 -> [D][WiFiGeneric.cpp:419] _eventCallback(): STA IP: 192.168.0.76, MASK: 255.255.255.0, GW: 192.168.0.1
+10:32:57.104 -> .
+10:32:57.104 -> Wifi Connected: UPC3707129
+10:32:57.104 -> WiFi IP: 192.168.0.76
+10:32:57.104 -> Connecting IoT
+10:32:57.104 -> Info: Initializing SNTP
+
+10:32:58.131 -> Info: SNTP initialization complete
+
+10:32:58.131 -> Info: IoT Hub SDK for C, version 1.1.23
+
+10:32:58.164 -> IoT Hub successfully connected
+10:32:58.164 -> IoTConn done, start time (ms): 163435
+10:32:58.164 -> sendData called with msg:
+10:32:58.164 -> {"messageId":6,"Temperature":24.86,"Pressure":969.25,"Humidity":45.84,"bat":0.00,"offset":0}
+10:32:58.164 -> {"messageId":7,"Temperature":24.88,"Pressure":969.30,"Humidity":45.94,"bat":0.00,"offset":130442}
+10:32:58.198 -> {"messageId":8,"Temperature":24.89,"Pressure":969.23,"Humidity":46.41,"bat":0.00,"offset":260884}
+10:32:58.198 -> {"messageId":9,"Temperature":24.89,"Pressure":969.19,"Humidity":46.15,"bat":0.00,"offset":391326}
+10:32:58.198 -> {"messageId":10,"Temperature":24.92,"Pressure":969.22,"Humidity":46.17,"bat":0.00,"offset":521768}
+10:32:58.198 -> 
+10:32:58.198 -> Info: >>>IoTHubClient_LL_SendEventAsync accepted message for transmission to IoT Hub.
+
+10:32:59.524 -> Info: >>>Connection status: connected
+
+10:32:59.524 -> IotConn::STATUS callback -> result: 0 reason: 0
+10:32:59.524 -> IotConn::DeviceMethodCallback called
+10:32:59.524 -> Info: Try to invoke method start
+
+10:32:59.524 -> Info: do somethig on start
+
+10:33:00.021 -> Info: >>>Confirmation[0] received for message tracking id = 0 with result = IOTHUB_CLIENT_CONFIRMATION_OK
+
+10:33:00.021 -> Send Confirmation Callback finished.
+10:33:03.137 -> IotConn::DeviceTwinCallback called
+10:33:03.137 -> updatestate=
+10:33:03.137 -> 0
+10:33:03.137 -> {"desired":{"$version":1},"reported":{"$version":1}}
+10:33:05.024 -> flashing led: 13
+10:33:05.919 -> Sending data complete
+10:33:05.952 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 5 - STA_DISCONNECTED
+10:33:05.952 -> [W][WiFiGeneric.cpp:391] _eventCallback(): Reason: 8 - ASSOC_LEAVE
+10:33:16.062 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:33:16.062 -> startTimestamp= 181354
+10:33:16.062 -> curr= 181354
+10:33:16.062 -> currtime= 0
+10:33:16.062 -> DallasSensor Constructor
+10:33:16.062 -> DallasSensor not found.
+10:33:16.113 -> flashing led: 13
+10:33:16.394 -> Elapsed ms: 181671
+10:33:16.394 -> Measurement stored: numStored/datalen:
+10:33:16.394 -> 1
+10:33:16.394 -> 94
+10:33:26.503 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:33:26.503 -> startTimestamp= 181354
+10:33:26.503 -> curr= 311796
+10:33:26.503 -> currtime= 130442
+10:33:26.503 -> DallasSensor Constructor
+10:33:26.503 -> DallasSensor not found.
+10:33:26.560 -> flashing led: 13
+10:33:26.834 -> Elapsed ms: 192113
+10:33:26.834 -> Measurement stored: numStored/datalen:
+10:33:26.834 -> 2
+10:33:26.834 -> 193
+10:33:36.953 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:33:36.953 -> startTimestamp= 181354
+10:33:36.953 -> curr= 442238
+10:33:36.953 -> currtime= 260884
+10:33:36.953 -> DallasSensor Constructor
+10:33:36.953 -> DallasSensor not found.
+10:33:36.953 -> flashing led: 13
+10:33:37.284 -> Elapsed ms: 202555
+10:33:37.284 -> Measurement stored: numStored/datalen:
+10:33:37.284 -> 3
+10:33:37.284 -> 292
+10:33:47.393 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:33:47.393 -> startTimestamp= 181354
+10:33:47.393 -> curr= 572680
+10:33:47.393 -> currtime= 391326
+10:33:47.393 -> DallasSensor Constructor
+10:33:47.393 -> DallasSensor not found.
+10:33:47.393 -> flashing led: 13
+10:33:47.724 -> Elapsed ms: 212997
+10:33:47.724 -> Measurement stored: numStored/datalen:
+10:33:47.724 -> 4
+10:33:47.724 -> 391
+10:33:57.831 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:33:57.831 -> startTimestamp= 181354
+10:33:57.831 -> curr= 703122
+10:33:57.831 -> currtime= 521768
+10:33:57.831 -> DallasSensor Constructor
+10:33:57.831 -> DallasSensor not found.
+10:33:57.864 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:33:57.864 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:33:58.362 -> .....[D][WiFiGeneric.cpp:374] _eventCallback(): Event: 4 - STA_CONNECTED
+10:34:00.525 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 7 - STA_GOT_IP
+10:34:00.525 -> [D][WiFiGeneric.cpp:419] _eventCallback(): STA IP: 192.168.0.76, MASK: 255.255.255.0, GW: 192.168.0.1
+10:34:00.848 -> .
+10:34:00.848 -> Wifi Connected: UPC3707129
+10:34:00.848 -> WiFi IP: 192.168.0.76
+10:34:00.848 -> Connecting IoT
+10:34:00.848 -> Info: Initializing SNTP
+
+10:34:01.876 -> Info: SNTP initialization complete
+
+10:34:01.876 -> Info: IoT Hub SDK for C, version 1.1.23
+
+10:34:02.071 -> IoT Hub successfully connected
+10:34:02.071 -> IoTConn done, start time (ms): 227329
+10:34:02.071 -> sendData called with msg:
+10:34:02.071 -> {"messageId":11,"Temperature":24.97,"Pressure":969.21,"Humidity":45.66,"bat":0.00,"offset":0}
+10:34:02.071 -> {"messageId":12,"Temperature":24.98,"Pressure":969.22,"Humidity":45.87,"bat":0.00,"offset":130442}
+10:34:02.071 -> {"messageId":13,"Temperature":24.98,"Pressure":969.21,"Humidity":45.81,"bat":0.00,"offset":260884}
+10:34:02.071 -> {"messageId":14,"Temperature":25.00,"Pressure":969.21,"Humidity":45.81,"bat":0.00,"offset":391326}
+10:34:02.071 -> {"messageId":15,"Temperature":25.02,"Pressure":969.24,"Humidity":45.62,"bat":0.00,"offset":521768}
+10:34:02.141 -> 
+10:34:02.141 -> Info: >>>IoTHubClient_LL_SendEventAsync accepted message for transmission to IoT Hub.
+
+10:34:03.401 -> Info: >>>Connection status: connected
+
+10:34:03.401 -> IotConn::STATUS callback -> result: 0 reason: 0
+10:34:03.832 -> IotConn::DeviceTwinCallback called
+10:34:03.832 -> updatestate=
+10:34:03.832 -> 0
+10:34:03.832 -> {"desired":{"$version":1},"reported":{"$version":1}}
+10:34:03.933 -> Info: >>>Confirmation[0] received for message tracking id = 0 with result = IOTHUB_CLIENT_CONFIRMATION_OK
+
+10:34:03.933 -> Send Confirmation Callback finished.
+10:34:08.936 -> flashing led: 13
+10:34:09.830 -> Sending data complete
+10:34:09.863 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 5 - STA_DISCONNECTED
+10:34:09.863 -> [W][WiFiGeneric.cpp:391] _eventCallback(): Reason: 8 - ASSOC_LEAVE
+10:34:19.950 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:34:19.950 -> startTimestamp= 245247
+10:34:19.950 -> curr= 245247
+10:34:19.950 -> currtime= 0
+10:34:19.950 -> DallasSensor Constructor
+10:34:19.991 -> DallasSensor not found.
+10:34:19.991 -> flashing led: 13
+10:34:20.281 -> Elapsed ms: 245564
+10:34:20.281 -> Measurement stored: numStored/datalen:
+10:34:20.281 -> 1
+10:34:20.281 -> 94
+10:34:30.387 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:34:30.387 -> startTimestamp= 245247
+10:34:30.387 -> curr= 375689
+10:34:30.387 -> currtime= 130442
+10:34:30.387 -> DallasSensor Constructor
+10:34:30.420 -> DallasSensor not found.
+10:34:30.420 -> flashing led: 13
+10:34:30.719 -> Elapsed ms: 256006
+10:34:30.719 -> Measurement stored: numStored/datalen:
+10:34:30.719 -> 2
+10:34:30.719 -> 193
+10:34:40.830 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:34:40.830 -> startTimestamp= 245247
+10:34:40.830 -> curr= 506131
+10:34:40.830 -> currtime= 260884
+10:34:40.830 -> DallasSensor Constructor
+10:34:40.864 -> DallasSensor not found.
+10:34:40.864 -> flashing led: 13
+10:34:41.161 -> Elapsed ms: 266448
+10:34:41.161 -> Measurement stored: numStored/datalen:
+10:34:41.161 -> 3
+10:34:41.161 -> 292
+10:34:51.272 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:34:51.272 -> startTimestamp= 245247
+10:34:51.272 -> curr= 636573
+10:34:51.272 -> currtime= 391326
+10:34:51.272 -> DallasSensor Constructor
+10:34:51.305 -> DallasSensor not found.
+10:34:51.305 -> flashing led: 13
+10:34:51.603 -> Elapsed ms: 276890
+10:34:51.603 -> Measurement stored: numStored/datalen:
+10:34:51.603 -> 4
+10:34:51.603 -> 391
+10:35:01.714 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:35:01.714 -> startTimestamp= 245247
+10:35:01.714 -> curr= 767015
+10:35:01.714 -> currtime= 521768
+10:35:01.714 -> DallasSensor Constructor
+10:35:01.747 -> DallasSensor not found.
+10:35:01.747 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:35:01.747 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 2 - STA_START
+10:35:02.244 -> .....[D][WiFiGeneric.cpp:374] _eventCallback(): Event: 4 - STA_CONNECTED
+10:35:04.333 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 7 - STA_GOT_IP
+10:35:04.333 -> [D][WiFiGeneric.cpp:419] _eventCallback(): STA IP: 192.168.0.76, MASK: 255.255.255.0, GW: 192.168.0.1
+10:35:04.764 -> .
+10:35:04.764 -> Wifi Connected: UPC3707129
+10:35:04.764 -> WiFi IP: 192.168.0.76
+10:35:04.764 -> Connecting IoT
+10:35:04.764 -> Info: Initializing SNTP
+
+10:35:05.757 -> Info: SNTP initialization complete
+
+10:35:05.757 -> Info: IoT Hub SDK for C, version 1.1.23
+
+10:35:05.823 -> IoT Hub successfully connected
+10:35:05.823 -> IoTConn done, start time (ms): 291089
+10:35:05.823 -> sendData called with msg:
+10:35:05.823 -> {"messageId":16,"Temperature":24.91,"Pressure":969.15,"Humidity":45.14,"bat":0.00,"offset":0}
+10:35:05.823 -> {"messageId":17,"Temperature":24.93,"Pressure":969.23,"Humidity":45.12,"bat":0.00,"offset":130442}
+10:35:05.857 -> {"messageId":18,"Temperature":24.93,"Pressure":969.19,"Humidity":45.13,"bat":0.00,"offset":260884}
+10:35:05.857 -> {"messageId":19,"Temperature":24.91,"Pressure":969.18,"Humidity":45.41,"bat":0.00,"offset":391326}
+10:35:05.857 -> {"messageId":20,"Temperature":24.94,"Pressure":969.23,"Humidity":45.58,"bat":0.00,"offset":521768}
+10:35:05.857 -> 
+10:35:05.857 -> Info: >>>IoTHubClient_LL_SendEventAsync accepted message for transmission to IoT Hub.
+
+10:35:07.115 -> Info: >>>Connection status: connected
+
+10:35:07.115 -> IotConn::STATUS callback -> result: 0 reason: 0
+10:35:07.515 -> IotConn::DeviceTwinCallback called
+10:35:07.515 -> updatestate=
+10:35:07.515 -> 0
+10:35:07.515 -> {"desired":{"$version":1},"reported":{"$version":1}}
+10:35:07.614 -> Info: >>>Confirmation[0] received for message tracking id = 0 with result = IOTHUB_CLIENT_CONFIRMATION_OK
+
+10:35:07.614 -> Send Confirmation Callback finished.
+10:35:12.620 -> flashing led: 13
+10:35:13.514 -> Sending data complete
+10:35:13.547 -> [D][WiFiGeneric.cpp:374] _eventCallback(): Event: 5 - STA_DISCONNECTED
+10:35:13.547 -> [W][WiFiGeneric.cpp:391] _eventCallback(): Reason: 8 - ASSOC_LEAVE
+10:35:23.643 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:35:23.643 -> startTimestamp= 308939
+10:35:23.643 -> curr= 308939
+10:35:23.643 -> currtime= 0
+10:35:23.643 -> DallasSensor Constructor
+10:35:23.677 -> DallasSensor not found.
+10:35:23.677 -> flashing led: 13
+10:35:23.974 -> Elapsed ms: 309256
+10:35:23.974 -> Measurement stored: numStored/datalen:
+10:35:23.974 -> 1
+10:35:23.974 -> 94
+10:35:34.074 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:35:34.074 -> startTimestamp= 308939
+10:35:34.074 -> curr= 439381
+10:35:34.074 -> currtime= 130442
+10:35:34.074 -> DallasSensor Constructor
+10:35:34.180 -> DallasSensor not found.
+10:35:34.180 -> flashing led: 13
+10:35:34.414 -> Elapsed ms: 319698
+10:35:34.414 -> Measurement stored: numStored/datalen:
+10:35:34.414 -> 2
+10:35:34.414 -> 193
+10:35:44.523 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:35:44.523 -> startTimestamp= 308939
+10:35:44.523 -> curr= 569823
+10:35:44.523 -> currtime= 260884
+10:35:44.523 -> DallasSensor Constructor
+10:35:44.556 -> DallasSensor not found.
+10:35:44.556 -> flashing led: 13
+10:35:44.854 -> Elapsed ms: 330140
+10:35:44.854 -> Measurement stored: numStored/datalen:
+10:35:44.854 -> 3
+10:35:44.854 -> 292
+10:35:54.965 -> [E][esp32-hal-adc.c:135] __analogRead(): GPIO15: ESP_ERR_TIMEOUT: ADC2 is in use by Wi-Fi.
+10:35:54.965 -> startTimestamp= 308939
+10:35:54.965 -> curr= 700265
+10:35:54.965 -> currtime= 391326
+10:35:54.965 -> DallasSensor Constructor
+10:35:54.999 -> DallasSensor not found.
+10:35:54.999 -> flashing led: 13
+10:35:55.296 -> Elapsed ms: 340582
+10:35:55.296 -> Measurement stored: numStored/datalen:
+10:35:55.296 -> 4
+10:35:55.296 -> 391

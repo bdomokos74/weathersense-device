@@ -39,6 +39,11 @@ pip install -r requirements.txt
 python datacollector.py -
 ```
 
+#### DOIT1
+
+- BME_ADDR 0x76
+- DOIT ESP32 DEVKIT V1
+
 
 ![wsense1.jpg](wsense1.jpg?raw=true "wsense1")
 
