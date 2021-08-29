@@ -65,3 +65,10 @@ Issues with VS Code IoT Workbench:
 https://cuneyt.aliustaoglu.biz/en/enabling-arduino-intellisense-with-visual-studio-code/
 In case .h files are not found, change settings to:
 "intelliSenseEngine": "Tag Parser"
+
+Also for monitor etc.:
+    "C_Cpp.intelliSenseEngine": "Tag Parser",
+    "IoTWorkbench.DevicePath": "Device",
+    "IoTWorkbench.BoardId": "esp32",
+    "arduino.path": "/Applications",
+    "arduino.commandPath": "Contents/MacOS/arduino"

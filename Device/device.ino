@@ -13,14 +13,13 @@
 #include "esp_task_wdt.h"
 
 #define DO_SEVENSEG 1
-//#define DO_SLEEP 1
-#define SLEEP_TIME_SEC 120
+
 #define DALLAS_PIN 15
 //#define LED_PIN 13
 #define LED_PIN 2
 #define BME_ADDR 0x76
 
-#define WDT_TIMEOUT 60
+#define WDT_TIMEOUT 600
 
 char* wifiSsid = WIFI_SSID;
 char* wifiPw = WIFI_PW;
@@ -40,18 +39,23 @@ const char *dallasMessageTemplate = "{\"messageId\":%d,\"Temperature\":%.2f,\"ba
 const char *bothTemplate = "{\"Id\":%d,\"t1\":%.2f,\"p\":%.2f,\"h\":%.2f,\"bat\":%.2f,\"offset\":%d,\"t2\":%.2f}\n";
 
 #define MSG_MAX_LEN 120
-#define MEASURE_INTERVAL_MS 10000
 
 unsigned long start_interval_ms = 0;
 
-#define BATCH_SIZE 15
 #define RTC_BUF_SIZE 3072
 RTC_DATA_ATTR unsigned long startTimestamp;
-RTC_DATA_ATTR int bootCnt = 0;
+RTC_DATA_ATTR int wakeCnt = 0;
 RTC_DATA_ATTR char dataBuf[RTC_BUF_SIZE];
 RTC_DATA_ATTR char *bufPoi = dataBuf;
 RTC_DATA_ATTR int numStoredMeasurements = 0;
 RTC_DATA_ATTR int msgId = 0;
+
+// DEVICE state:
+RTC_DATA_ATTR int doSleep = 0;
+RTC_DATA_ATTR int sleepTimeSec = SLEEP_TIME_SEC;
+RTC_DATA_ATTR int measureIntervalMs = MEASURE_INTERVAL_MS;
+RTC_DATA_ATTR int measureBatchSize = MEASURE_BATCH_SIZE;
+
 
 int storeMeasurement() {
     float temp;
@@ -63,19 +67,22 @@ int storeMeasurement() {
     int remainingLen = RTC_BUF_SIZE-(int)(bufPoi-dataBuf);
     int writtenChars = 0;
     if(numStoredMeasurements==0) startTimestamp = millis();
-    unsigned long curr = numStoredMeasurements*SLEEP_TIME_SEC*1000+millis();
+    unsigned long curr = millis();
+    if(doSleep && numStoredMeasurements>0) {
+      curr += numStoredMeasurements*sleepTimeSec*1000;
+    }
     int currTime =  curr-startTimestamp;
-    Serial.print("startTimestamp= "); Serial.println(startTimestamp);
-    Serial.print("curr= "); Serial.println(curr);
-    Serial.print("currtime= "); Serial.println(currTime);
-    dallasSensor = new DallasSensor(DALLAS_PIN);
+    Serial.print("startTimestamp/curr/currtime = "); 
+    Serial.print(startTimestamp); Serial.print("/"); Serial.print(curr);
+    Serial.print("/"); Serial.println(currTime);
     
     if(bmeSensor->isConnected()) {
       temp = bmeSensor->readTemp();
       pres = bmeSensor->readPressure();
       hum = bmeSensor->readHumidity();
-      
     } 
+    Serial.print("bme done");
+
     if(dallasSensor->isConnected()) {
         temp2 = dallasSensor->readTemp();
     }
@@ -94,103 +101,107 @@ int storeMeasurement() {
   return writtenChars;
 }
 
-
+void wakeLoop();
 void setup() {
   start_interval_ms = millis();
   Serial.begin(115200);
   while(!Serial) {};
+
   Wire.begin();
+
   led = new LedUtil(LED_PIN);  
+  bmeSensor = new BMESensor(BME_ADDR);
+  dallasSensor = new DallasSensor(DALLAS_PIN);
+
   Serial.println("ESP32 Device Initializing..."); 
+  esp_task_wdt_init(WDT_TIMEOUT, true);
+  esp_task_wdt_add(NULL);
 
-#ifdef DO_SLEEP
-  ++bootCnt;
-  Serial.println("Boot number: " + String(bootCnt));
-
-  /* sleep code */
   esp_sleep_wakeup_cause_t reason;
   reason = esp_sleep_get_wakeup_cause();
   DeepSleep::log_wakeup(reason);
-  if(bootCnt==1 || reason==ESP_SLEEP_WAKEUP_TIMER) 
-  {
-    int writtenChars = storeMeasurement();
+  if(doSleep && reason==ESP_SLEEP_WAKEUP_TIMER) {
     
-    if(writtenChars==0) {
-      // no sensors detected, flash the led and sleep
-      esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * SLEEP_TIME_SEC);
-      Serial.print("Elapsed ms: ");
-      Serial.println((millis()-start_interval_ms));
-      Serial.println("No sensors, go to sleep");
-      esp_deep_sleep_start();
-    }
-      
-    if(numStoredMeasurements < BATCH_SIZE && bootCnt>1 || numStoredMeasurements == 0) {
-        led->flashLed1();
-        Serial.print("Elapsed ms: ");
-        Serial.println((millis()-start_interval_ms));
-        Serial.print("Measurement stored: numStored/datalen: ");
-        Serial.print(numStoredMeasurements);Serial.print("/")
-        Serial.println((int)(bufPoi-dataBuf));
-        Serial.println("Go to sleep");
-        esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * SLEEP_TIME_SEC);
-        esp_deep_sleep_start();
-    }
+      Serial.println("before wakeloop");
+      wakeLoop();
+      Serial.println("after wakeloop");
     
-    wifiNet = new WifiNet(wifiSsid, wifiPw);
-    iotConn = new IotConn(wifiNet, iotConnString);
-    if (iotConn->isConnected() )
-    {
-      Serial.print("IoTConn done, start time (ms): ");
-      Serial.println(millis()-start_interval_ms);
-      
-      iotConn->sendData(dataBuf);
+  } else {
 
-      while(!iotConn->messageDone())
-      {
-        Esp32MQTTClient_Check();
-        delay(100);
-      }
-
-      led->flashLed();
-      Serial.println("Sending data complete");
-      bufPoi = dataBuf;
-      numStoredMeasurements = 0;
-    } else {
-      if(!iotConn->isConnected()) {
-        Serial.print("No IoT conn, (ms): ");
-      } else if(!bmeSensor->isConnected()) {
-        Serial.print("No BME sensor, (ms): ");
-      }
-      Serial.println(millis()-start_interval_ms);
-      led->flashLedErr();
-    }
-
-    Serial.print("Elapsed ms: ");
-    Serial.println((millis()-start_interval_ms));
-    Serial.println("Go sleep");
-    esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * SLEEP_TIME_SEC);  
-    esp_deep_sleep_start();  
-  }
-  
-#else
-  bmeSensor = new BMESensor(BME_ADDR);
-  dallasSensor = new DallasSensor(DALLAS_PIN);
 #ifdef DO_SEVENSEG
   sevenSeg = new SevenSeg();
 #endif // DO_SEVENSEG
-  //wifiNet = new WifiNet(wifiSsid, wifiPw);
-  //iotConn = new IotConn(wifiNet, iotConnString);
 
-  esp_task_wdt_init(WDT_TIMEOUT, true);
-  esp_task_wdt_add(NULL);
-#endif // DO_SLEEP
+  }
+}
+
+void wakeLoop() {
+  Serial.print("Wake number: ");
+  Serial.println(wakeCnt);
+
+  esp_task_wdt_reset();
+  int writtenChars = storeMeasurement();
+  
+  if(writtenChars==0) {
+    // no sensors detected, flash the led and sleep
+    esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * sleepTimeSec);
+    Serial.println("No sensors, go to sleep");
+    ++wakeCnt;
+    esp_deep_sleep_start();
+  }
+    
+  if(numStoredMeasurements < measureBatchSize && wakeCnt>0 || numStoredMeasurements == 0) {
+      led->flashLed1();
+      Serial.print("Measurement stored: numStored/datalen: ");
+      Serial.print(numStoredMeasurements);Serial.print("/");
+      Serial.println((int)(bufPoi-dataBuf));
+      Serial.println("Go to sleep");
+      esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * sleepTimeSec);
+      ++wakeCnt;
+      esp_deep_sleep_start();
+  }
+  
+  wifiNet = new WifiNet(wifiSsid, wifiPw);
+  iotConn = new IotConn(wifiNet, iotConnString);
+  if (iotConn->isConnected() )
+  {
+    Serial.print("IoTConn done, start time (ms): ");
+    Serial.println(millis()-start_interval_ms);
+    
+    iotConn->sendData(dataBuf);
+
+    while(!iotConn->messageDone())
+    {
+      Esp32MQTTClient_Check();
+      delay(100);
+    }
+
+    led->flashLed();
+    Serial.println("Sending data complete");
+    bufPoi = dataBuf;
+    numStoredMeasurements = 0;
+  } else {
+    if(!iotConn->isConnected()) {
+      Serial.print("No IoT conn, (ms): ");
+    } else if(!bmeSensor->isConnected()) {
+      Serial.print("No BME sensor, (ms): ");
+    }
+    Serial.println(millis()-start_interval_ms);
+    led->flashLedErr();
+  }
+
+  Serial.println("Go sleep");
+  esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * sleepTimeSec);  
+  ++wakeCnt;
+  esp_deep_sleep_start();  
+    
 }
 
 unsigned long lastSend = 0;
 unsigned long loopCnt = 0;
 void loop() {
     esp_task_wdt_reset();
-  if((int)(millis() - lastSend ) > MEASURE_INTERVAL_MS ) {
+  if((int)(millis() - lastSend ) > measureIntervalMs ) {
     int writtenChars = storeMeasurement();
 
 #ifdef DO_SEVENSEG 
@@ -201,13 +212,19 @@ void loop() {
         }
       }
 #endif
-
-    if(numStoredMeasurements < 5 && bootCnt>=0 && loopCnt < 6) {
+    Serial.print("numStored/batchsize/wakecnt/loopcnt/loopcnt%batch =");
+    Serial.print(numStoredMeasurements);Serial.print("/");
+    Serial.print(measureBatchSize);Serial.print("/");
+    Serial.print(wakeCnt);Serial.print("/");
+    Serial.print(loopCnt);Serial.print("/");
+    Serial.println(loopCnt % measureBatchSize);
+    
+    if(numStoredMeasurements < measureBatchSize && (loopCnt % measureBatchSize)>0) {
         led->flashLed1();
         Serial.print("Elapsed ms: ");
         Serial.println((millis()-start_interval_ms));
-        Serial.println("Measurement stored: numStored/datalen:");
-        Serial.println(numStoredMeasurements);
+        Serial.print("Measurement stored: numStored/datalen: ");
+        Serial.print(numStoredMeasurements);Serial.print("/");
         Serial.println((int)(bufPoi-dataBuf));
     }
     else {
