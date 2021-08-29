@@ -112,22 +112,16 @@ void wakeLoop() {
     Serial.print("IoTConn done, start time (ms): ");
     Serial.println(millis()-start_interval_ms);
     
-    iotConn->sendData(storage->getDataBuf());
-
-    while(!iotConn->messageDone())
-    {
-      Esp32MQTTClient_Check();
-      delay(100);
+    if(iotConn->sendData(storage->getDataBuf())==0) {
+      storage->reset();
+      led->flashLed();
+    } else {
+      led->flashLedErr();
     }
-
-    storage->reset();
+    iotConn->eventLoop();
 
     iotConn->close();
     wifiNet->close();
-    
-    led->flashLed();
-    Serial.println("Sending data complete");
-    
   } else {
     if(!iotConn->isConnected()) {
       Serial.print("No IoT conn, (ms): ");
@@ -180,16 +174,14 @@ void loop() {
           Serial.println(millis()-start_interval_ms);
 
           if(storage->getNumStoredMeasurements()>0) {
-            iotConn->sendData(storage->getDataBuf());
-
-            while(!iotConn->messageDone())
-            {
-              iotConn->eventLoop();
+            if(iotConn->sendData(storage->getDataBuf())==0) {
+              led->flashLed();
+              storage->reset();
+            } else {
+              led->flashLedErr();
             }
-            led->flashLed();
-            Serial.println("Sending data complete");
-            
-            storage->reset();
+            iotConn->eventLoop();
+
           } else {
             Serial.print("IOT - only check");
             iotConn->eventLoop();

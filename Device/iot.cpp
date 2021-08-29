@@ -5,7 +5,7 @@
 /*  "HostName=<host_name>;DeviceId=<device_id>;SharedAccessSignature=<device_sas_token>"    */
 
 #define MESSAGE_MAX_LEN 256
-#define MESSAGE_ACK_TIMEOUT_MS 5000
+#define MESSAGE_ACK_TIMEOUT_MS 10000
 
 #define STATUS_MSG_MAX_LEN 100
 
@@ -13,6 +13,7 @@ extern State *deviceState;
 
 bool IotConn::messageSending = true;
 bool IotConn::ack = false;
+bool IotConn::sendFailed = false;
 bool IotConn::activeSession;
 
 IotConn::IotConn(WifiNet *wifiNet, char* connectionString, State* deviceState) {
@@ -42,25 +43,39 @@ IotConn::IotConn(WifiNet *wifiNet, char* connectionString, State* deviceState) {
   }
 }
 
-void IotConn::sendData(char* msg) {
+int IotConn::sendData(char* msg) {
     Serial.println("sendData called with msg:");
     Serial.println(msg);
     EVENT_INSTANCE* message = Esp32MQTTClient_Event_Generate(msg, MESSAGE);
     Esp32MQTTClient_SendEventInstance(message);
     sendTime = millis();
     ack = false;
+    sendFailed = false;
+
+    while(!messageDone())
+    {
+      Esp32MQTTClient_Check();
+      delay(100);
+    }
+
+    if(ack) {
+      Serial.println("Send OK");
+      ack = false;
+      return 0;
+    } else {
+      if(sendFailed) {
+        Serial.println("Send FAIL");
+        sendFailed = false;
+        return -1;
+      } else {
+        Serial.println("Send Timeout");
+        return -2;
+      }
+    }
 }
 
 bool IotConn::messageDone() {
-  return ack || (int)(millis()-sendTime)>MESSAGE_ACK_TIMEOUT_MS;
-}
-
-void IotConn::ConnectionStatusCallback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOTHUB_CLIENT_CONNECTION_STATUS_REASON reason)
-{
-  Serial.print("IotConn::STATUS callback -> result: ");
-  Serial.print(result);
-  Serial.print(" reason: ");
-  Serial.println(result);
+  return ack || sendFailed || (int)(millis()-sendTime)>MESSAGE_ACK_TIMEOUT_MS;
 }
 
 void IotConn::SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result)
@@ -72,7 +87,17 @@ void IotConn::SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result)
   } else {
     Serial.print("SendConfirmationCallback failed: ");
     Serial.println(result);
+    sendFailed = true;
   }
+}
+
+
+void IotConn::ConnectionStatusCallback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOTHUB_CLIENT_CONNECTION_STATUS_REASON reason)
+{
+  Serial.print("IotConn::STATUS callback -> result: ");
+  Serial.print(result);
+  Serial.print(" reason: ");
+  Serial.println(result);
 }
 
 void IotConn::MessageCallback(const char* payLoad, int size)
@@ -87,19 +112,18 @@ void IotConn::DeviceTwinCallback(DEVICE_TWIN_UPDATE_STATE updateState, const uns
   Serial.print("IotConn::DeviceTwinCallback called\nupdatestate=");
   Serial.println(updateState);
   
-  char *temp = (char *)malloc(size + 1);
-  if (temp == NULL)
+  char *zeroTerminated = (char *)malloc(size + 1);
+  if (zeroTerminated == NULL)
   {
     return;
   }
-  memcpy(temp, payLoad, size);
-  temp[size] = '\0';
+  memcpy(zeroTerminated, payLoad, size);
+  zeroTerminated[size] = '\0';
 
   // Display Twin message.
-  Serial.println(temp);
-  deviceState->updateState(temp);
-  free(temp);
-
+  Serial.println(zeroTerminated);
+  deviceState->updateState(zeroTerminated);
+  free(zeroTerminated);
 }
 
 int IotConn::DeviceMethodCallback(const char *methodName, const unsigned char *payload, int size, unsigned char **response, int *response_size)
@@ -150,21 +174,25 @@ void IotConn::close() {
 }
 
 void IotConn::eventLoop() {
-  if(activeSession) {
-    shellLoop();
-  } else if(deviceState->statusRequested) {
+   if(deviceState->statusRequested) {
     char buf[100];
     deviceState->getStatusString(buf, 100);
     Serial.print("sending status: ");Serial.println(buf);
     Esp32MQTTClient_ReportState(buf);
+    
     while(deviceState->statusRequested) {
+      // TODO add timeout
       Esp32MQTTClient_Check();
       delay(100);
     }
-  } else {
-    Esp32MQTTClient_Check();
-    delay(100);
   }
+  if(activeSession) {
+    shellLoop();
+  } 
+  
+  Esp32MQTTClient_Check();
+  delay(100);
+  
 }
 extern int wakeCnt;
 void IotConn::ReportConfirmationCallback(int status)

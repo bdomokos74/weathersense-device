@@ -11,6 +11,7 @@ private:
   int messageCount = 0;
   bool hasIoTHub = false;
   static bool ack;
+  static bool sendFailed;
   unsigned long sendTime;
   static bool activeSession;
 
@@ -26,7 +27,7 @@ public:
   static bool messageSending;
 
   IotConn(WifiNet *wifiNet, char* connectionString, State *deviceState);
-  void sendData(char* msg);
+  int sendData(char* msg);
   bool messageDone();
   bool isConnected();
   bool isSendingOn();
