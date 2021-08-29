@@ -44,11 +44,11 @@ python datacollector.py -
 - BME_ADDR 0x76
 - DOIT ESP32 DEVKIT V1
 
-![raspiDevice1.jpg](pic/raspiDevice1.jpg?raw=true "raspiDevice1")
+![raspiDevice1.jpg](pic/raspiDevice_1.jpg?raw=true "raspiDevice1")
 
-![raspiDevice2.jpg](pic/raspiDevice2.jpg?raw=true "raspiDevice2")
+![raspiDevice2.jpg](pic/raspiDevice_2.jpg?raw=true "raspiDevice2")
 
-![esp32Device1.jpg](esp32Device1.jpg?raw=true "esp32Device1")
+![esp32Device1.jpg](pic/esp32Device_1.jpg?raw=true "esp32Device1")
 
 ### Notes
 
