@@ -6,7 +6,6 @@ LedUtil::LedUtil(int pin) {
 }
 
 void LedUtil::_flashLed(int num, int ms) {
-  Serial.print("flashing led: "); Serial.println(ledPin);
   pinMode(ledPin, OUTPUT);
   for( int i = 0; i < num; i++) {
     digitalWrite(ledPin, HIGH);   // turn the LED on (HIGH is the voltage level)
