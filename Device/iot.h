@@ -1,6 +1,7 @@
 #include "Esp32MQTTClient.h"
 #include "wifinet.h"
 #include "deep_sleep.h"
+#include "state.h"
 
 #ifndef IOT_H
 #define IOT_H
@@ -12,8 +13,6 @@ private:
   static bool ack;
   unsigned long sendTime;
   static bool activeSession;
-  static bool statusRequested;
-  static bool sleepStatusChanged;
 
   static void ConnectionStatusCallback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOTHUB_CLIENT_CONNECTION_STATUS_REASON reason);
   static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result);
@@ -26,7 +25,7 @@ public:
 
   static bool messageSending;
 
-  IotConn(WifiNet *wifiNet, char* connectionString);
+  IotConn(WifiNet *wifiNet, char* connectionString, State *deviceState);
   void sendData(char* msg);
   bool messageDone();
   bool isConnected();

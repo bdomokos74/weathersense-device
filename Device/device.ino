@@ -11,6 +11,7 @@
 #include "dallas_sensor.h"
 #include "storage.h"
 #include "deep_sleep.h"
+#include "state.h"
 #include "esp_task_wdt.h"
 
 #define DO_SEVENSEG 1
@@ -35,16 +36,11 @@ WifiNet *wifiNet;
 IotConn *iotConn;
 LedUtil *led;
 Storage *storage;
+State *deviceState;
 
 unsigned long start_interval_ms = 0;
 
 RTC_DATA_ATTR int wakeCnt = 0;
-
-// DEVICE state:
-RTC_DATA_ATTR int doSleep = 0;
-RTC_DATA_ATTR int sleepTimeSec = SLEEP_TIME_SEC;
-RTC_DATA_ATTR int measureIntervalMs = MEASURE_INTERVAL_MS;
-RTC_DATA_ATTR int measureBatchSize = MEASURE_BATCH_SIZE;
 
 void wakeLoop();
 void setup() {
@@ -58,6 +54,7 @@ void setup() {
   bmeSensor = new BMESensor(BME_ADDR);
   dallasSensor = new DallasSensor(DALLAS_PIN);
   storage = new Storage(bmeSensor, dallasSensor);
+  deviceState = new State();
 
   Serial.println("ESP32 Device Initializing..."); 
   esp_task_wdt_init(WDT_TIMEOUT, true);
@@ -66,7 +63,7 @@ void setup() {
   esp_sleep_wakeup_cause_t reason;
   reason = esp_sleep_get_wakeup_cause();
   DeepSleep::log_wakeup(reason);
-  if(doSleep && reason==ESP_SLEEP_WAKEUP_TIMER) {
+  if(deviceState->getDoSleep() && reason==ESP_SLEEP_WAKEUP_TIMER) {
     
       Serial.println("before wakeloop");
       wakeLoop();
@@ -86,29 +83,29 @@ void wakeLoop() {
   Serial.println(wakeCnt);
 
   esp_task_wdt_reset();
-  int writtenChars = storage->storeMeasurement(doSleep, sleepTimeSec);
+  int writtenChars = storage->storeMeasurement(deviceState->getDoSleep(), deviceState->getSleepTimeSec());
   
   if(writtenChars==0) {
     // no sensors detected, flash the led and sleep
-    esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * sleepTimeSec);
+    esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * deviceState->getSleepTimeSec());
     Serial.println("No sensors, go to sleep");
     ++wakeCnt;
     esp_deep_sleep_start();
   }
     
-  if(storage->getNumStoredMeasurements() < measureBatchSize && wakeCnt>0 || storage->getNumStoredMeasurements() == 0) {
+  if(storage->getNumStoredMeasurements() < deviceState->getMeasureBatchSize() && wakeCnt>0 || storage->getNumStoredMeasurements() == 0) {
       led->flashLed1();
       storage->printStatus();
       
       Serial.println("Go to sleep");
-      esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * sleepTimeSec);
+      esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * deviceState->getSleepTimeSec());
 
       ++wakeCnt;
       esp_deep_sleep_start();
   }
   
   wifiNet = new WifiNet(wifiSsid, wifiPw);
-  iotConn = new IotConn(wifiNet, iotConnString);
+  iotConn = new IotConn(wifiNet, iotConnString, deviceState);
 
   if (iotConn->isConnected() )
   {
@@ -142,7 +139,7 @@ void wakeLoop() {
   }
 
   Serial.println("Go sleep");
-  esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * sleepTimeSec);  
+  esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * deviceState->getSleepTimeSec());
   ++wakeCnt;
   esp_deep_sleep_start();  
     
@@ -152,8 +149,8 @@ unsigned long lastSend = 0;
 unsigned long loopCnt = 0;
 void loop() {
     esp_task_wdt_reset();
-  if((int)(millis() - lastSend ) > measureIntervalMs ) {
-    int writtenChars = storage->storeMeasurement(doSleep, sleepTimeSec);
+  if((int)(millis() - lastSend ) > deviceState->getMeasureIntervalMs() ) {
+    int writtenChars = storage->storeMeasurement(deviceState->getDoSleep(), deviceState->getSleepTimeSec());
 
 #ifdef DO_SEVENSEG 
       if(bmeSensor->isConnected()) {
@@ -165,20 +162,18 @@ void loop() {
 #endif
     Serial.print("numStored/batchsize/wakecnt/loopcnt/loopcnt%batch =");
     Serial.print(storage->getNumStoredMeasurements());Serial.print("/");
-    Serial.print(measureBatchSize);Serial.print("/");
+    Serial.print(deviceState->getMeasureBatchSize());Serial.print("/");
     Serial.print(wakeCnt);Serial.print("/");
     Serial.print(loopCnt);Serial.print("/");
-    Serial.println(loopCnt % measureBatchSize);
+    Serial.println(loopCnt % deviceState->getMeasureBatchSize());
     
-    if(storage->getNumStoredMeasurements() < measureBatchSize && (loopCnt % measureBatchSize)>0) {
+    if(storage->getNumStoredMeasurements() < deviceState->getMeasureBatchSize() && (loopCnt % deviceState->getMeasureBatchSize())>0) {
         led->flashLed1();
-        Serial.print("Elapsed ms: ");
-        Serial.println((millis()-start_interval_ms));
         storage->printStatus();
     }
     else {
         wifiNet = new WifiNet(wifiSsid, wifiPw);
-        iotConn = new IotConn(wifiNet, iotConnString);
+        iotConn = new IotConn(wifiNet, iotConnString, deviceState);
         if (iotConn->isConnected() )
         {
           Serial.print("IoTConn done, start time (ms): ");

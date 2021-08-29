@@ -1,5 +1,4 @@
 #include "iot.h"
-#include "wifinet.h"
 
 /*String containing Hostname, Device Id & Device Key in the format:                         */
 /*  "HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>"                */
@@ -10,20 +9,13 @@
 
 #define STATUS_MSG_MAX_LEN 100
 
-const char *statusTemplate = "{\"doSleep\":\"%d\",\"sleepTimeSec\":\"%d\",\"measureIntervalMs\":\"%d\",\"measureBatchSize\":\"%d\"}";
+extern State *deviceState;
 
 bool IotConn::messageSending = true;
 bool IotConn::ack = false;
 bool IotConn::activeSession;
-bool IotConn::statusRequested;
-bool IotConn::sleepStatusChanged = false;
 
-extern int doSleep;
-extern int sleepTimeSec;
-extern int measureIntervalMs;
-extern int measureBatchSize;
-
-IotConn::IotConn(WifiNet *wifiNet, char* connectionString) {
+IotConn::IotConn(WifiNet *wifiNet, char* connectionString, State* deviceState) {
 
   if(!wifiNet->isConnected()) {
     Serial.println("No WiFi, skip IoT");
@@ -39,7 +31,7 @@ IotConn::IotConn(WifiNet *wifiNet, char* connectionString) {
   } else {
     hasIoTHub = true;
     activeSession = false;
-    statusRequested = false;
+
     Esp32MQTTClient_SetSendConfirmationCallback(IotConn::SendConfirmationCallback);
     Esp32MQTTClient_SetMessageCallback(IotConn::MessageCallback);
     Esp32MQTTClient_SetDeviceTwinCallback(IotConn::DeviceTwinCallback);
@@ -90,15 +82,6 @@ void IotConn::MessageCallback(const char* payLoad, int size)
   activeSession = true;
 }
 
-int IotConn::readInt(const char* buf, const char* tag) {
-  char* start = strstr(buf, tag);
-  if(start != NULL) {
-    start += (strlen(tag));
-    start += 2;
-    return atoi(start);
-  }
-  return -1;
-}
 void IotConn::DeviceTwinCallback(DEVICE_TWIN_UPDATE_STATE updateState, const unsigned char *payLoad, int size)
 {
   Serial.print("IotConn::DeviceTwinCallback called\nupdatestate=");
@@ -114,55 +97,9 @@ void IotConn::DeviceTwinCallback(DEVICE_TWIN_UPDATE_STATE updateState, const uns
 
   // Display Twin message.
   Serial.println(temp);
-  bool hasChange = false;
-  int val = readInt(temp, "measureIntervalMs");
-  if(val != -1) {
-    Serial.print("measureIntervalMs: ");Serial.print(val);
-    if(measureIntervalMs!=val) {
-      hasChange = true;
-      Serial.print(" CHANGED ");Serial.println(measureIntervalMs);
-    } else {
-       Serial.println("");
-    }
-    measureIntervalMs = val;
-  }
-  val = readInt(temp, "measureBatchSize");
-  if(val != -1) {
-    Serial.print("measureBatchSize: ");Serial.print(val);
-    if(measureBatchSize!=val) {
-      hasChange = true;
-      Serial.print(" CHANGED ");Serial.println(measureBatchSize);
-    } else {
-       Serial.println("");
-    }
-    measureBatchSize = val;
-  }
-  val = readInt(temp, "sleepTimeSec");
-  if(val != -1) {
-    Serial.print("sleepTimeSec: ");Serial.print(val);
-    if(sleepTimeSec!=val) {
-      hasChange = true;
-      Serial.print(" CHANGED ");Serial.println(sleepTimeSec);
-    } else {
-       Serial.println("");
-    }
-    sleepTimeSec = val;
-  }
-  val = readInt(temp, "doSleep");
-  if(val != -1) {
-    Serial.print("doSleep: ");Serial.print(val);
-    if(doSleep!=val) {
-      hasChange = true;
-      sleepStatusChanged = true;
-      Serial.print(" CHANGED ");Serial.println(doSleep);
-    } else {
-       Serial.println("");
-    }
-    doSleep = val;
-  }
-  
+  deviceState->updateState(temp);
   free(temp);
-  statusRequested = hasChange;
+
 }
 
 int IotConn::DeviceMethodCallback(const char *methodName, const unsigned char *payload, int size, unsigned char **response, int *response_size)
@@ -215,12 +152,12 @@ void IotConn::close() {
 void IotConn::eventLoop() {
   if(activeSession) {
     shellLoop();
-  } else if(statusRequested) {
+  } else if(deviceState->statusRequested) {
     char buf[100];
-    snprintf(buf, 100, statusTemplate, doSleep, sleepTimeSec, measureIntervalMs,measureBatchSize);
+    deviceState->getStatusString(buf, 100);
     Serial.print("sending status: ");Serial.println(buf);
     Esp32MQTTClient_ReportState(buf);
-    while(statusRequested) {
+    while(deviceState->statusRequested) {
       Esp32MQTTClient_Check();
       delay(100);
     }
@@ -234,12 +171,12 @@ void IotConn::ReportConfirmationCallback(int status)
 {
   Serial.print("IotConn::ReportConfirmation callback -> status: ");
   Serial.println(status);
-  statusRequested = false;
-  if(sleepStatusChanged) {
-    sleepStatusChanged = false;
+  deviceState->statusRequested = false;
+  if(deviceState->sleepStatusChanged) {
+    deviceState->sleepStatusChanged = false;
     wakeCnt = 1;
     Serial.println("doSleep requested, going to sleep");
-    esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * sleepTimeSec);
+    esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * deviceState->getSleepTimeSec());
     esp_deep_sleep_start();
   }
 }
