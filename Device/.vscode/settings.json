@@ -1,0 +1,9 @@
+{
+    "files.exclude": {
+        ".build": true,
+        ".iotworkbenchproject": true
+    },
+    "C_Cpp.intelliSenseEngine": "Tag Parser",
+    "IoTWorkbench.DevicePath": "Device",
+    "IoTWorkbench.BoardId": "esp32"
+}

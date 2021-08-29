@@ -11,6 +11,7 @@ private:
   static bool ack;
   unsigned long sendTime;
   static bool activeSession;
+  static bool statusRequested;
 
   static void ConnectionStatusCallback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOTHUB_CLIENT_CONNECTION_STATUS_REASON reason);
   static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result);

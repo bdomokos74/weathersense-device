@@ -14,6 +14,7 @@ const char *statusMsg = "{\"$version\":\"%s\"}";
 bool IotConn::messageSending = true;
 bool IotConn::ack = false;
 bool IotConn::activeSession;
+bool IotConn::statusRequested;
 
 void IotConn::sendData(char* msg) {
     Serial.println("sendData called with msg:");
@@ -64,26 +65,32 @@ void IotConn::MessageCallback(const char* payLoad, int size)
   Serial.println(payLoad);
   activeSession = true;
 }
-
 void IotConn::DeviceTwinCallback(DEVICE_TWIN_UPDATE_STATE updateState, const unsigned char *payLoad, int size)
 {
-  Serial.println("IotConn::DeviceTwinCallback called\nupdatestate=");
+  Serial.print("IotConn::DeviceTwinCallback called\nupdatestate=");
   Serial.println(updateState);
   
-  char buf[STATUS_MSG_MAX_LEN];
-  int n = min(size, STATUS_MSG_MAX_LEN-1);
-  memcpy(buf, payLoad, n);
-  buf[n] = '\0';
+  char *temp = (char *)malloc(size + 1);
+  if (temp == NULL)
+  {
+    return;
+  }
+  memcpy(temp, payLoad, size);
+  temp[size] = '\0';
   // Display Twin message.
-  Serial.println("payload: ");
-  Serial.println(buf);
+  Serial.println(temp);
+  free(temp);
 
+  statusRequested = true;
+/*
   Serial.println("reporting version START");
   
   int written = snprintf(buf, STATUS_MSG_MAX_LEN, statusMsg, "0.9");
   buf[written] = 0;
   Esp32MQTTClient_ReportState(buf);
   Serial.println("reporting version DONE");
+  Esp32MQTTClient_ReportState("{\"$version\":\"0.9\"}");
+  */
 }
 
 int IotConn::DeviceMethodCallback(const char *methodName, const unsigned char *payload, int size, unsigned char **response, int *response_size)
@@ -140,6 +147,7 @@ IotConn::IotConn(WifiNet *wifiNet, char* connectionString) {
   } else {
     hasIoTHub = true;
     activeSession = false;
+    statusRequested = false;
     Esp32MQTTClient_SetSendConfirmationCallback(IotConn::SendConfirmationCallback);
     Esp32MQTTClient_SetMessageCallback(IotConn::MessageCallback);
     Esp32MQTTClient_SetDeviceTwinCallback(IotConn::DeviceTwinCallback);
@@ -158,6 +166,9 @@ void IotConn::close() {
 void IotConn::eventLoop() {
   if(activeSession) {
     shellLoop();
+  } else if(statusRequested) {
+    Esp32MQTTClient_ReportState("{\"sleepTimeSec\":\"0\"}");
+    statusRequested = false;
   } else {
     Esp32MQTTClient_Check();
     delay(100);
@@ -167,6 +178,7 @@ void IotConn::eventLoop() {
 void IotConn::shellLoop() {
   Serial.println("Entering shell loop...");
   
+  Esp32MQTTClient_ReportState("{\"connectionState\":\"Connected\"}");
   
   while(activeSession) {
     Esp32MQTTClient_Check();

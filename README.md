@@ -44,13 +44,24 @@ python datacollector.py -
 - BME_ADDR 0x76
 - DOIT ESP32 DEVKIT V1
 
+![raspiDevice1.jpg](pic/raspiDevice1.jpg?raw=true "raspiDevice1")
 
-![wsense1.jpg](wsense1.jpg?raw=true "wsense1")
+![raspiDevice2.jpg](pic/raspiDevice2.jpg?raw=true "raspiDevice2")
 
-![wsense2.jpg](wsense2.jpg?raw=true "wsense2")
+![esp32Device1.jpg](esp32Device1.jpg?raw=true "esp32Device1")
 
 ### Notes
 
-http://wiki.sunfounder.cc/index.php?title=LCD1602_Module
+ESP32 sleep-wakeup
+https://lastminuteengineers.com/esp32-deep-sleep-wakeup-sources/
+https://iotassistant.io/esp32/enable-hardware-watchdog-timer-esp32-arduino-ide/
 
-https://www.raspberrypi-spy.co.uk/2016/07/using-bme280-i2c-temperature-pressure-sensor-in-python/
+ESP32 flash memory
+https://randomnerdtutorials.com/esp32-save-data-permanently-preferences/
+
+https://docs.microsoft.com/en-us/samples/azure-samples/esp32-iot-devkit-get-started/sample/
+
+Issues with VS Code IoT Workbench:
+https://cuneyt.aliustaoglu.biz/en/enabling-arduino-intellisense-with-visual-studio-code/
+In case .h files are not found, change settings to:
+"intelliSenseEngine": "Tag Parser"

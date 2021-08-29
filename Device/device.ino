@@ -128,8 +128,8 @@ void setup() {
         led->flashLed1();
         Serial.print("Elapsed ms: ");
         Serial.println((millis()-start_interval_ms));
-        Serial.println("Measurement stored: numStored/datalen:");
-        Serial.println(numStoredMeasurements);
+        Serial.print("Measurement stored: numStored/datalen: ");
+        Serial.print(numStoredMeasurements);Serial.print("/")
         Serial.println((int)(bufPoi-dataBuf));
         Serial.println("Go to sleep");
         esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * SLEEP_TIME_SEC);

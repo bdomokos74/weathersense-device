@@ -136,3 +136,7 @@ local.settings.json
 iot_config.h
 arduino_log_wifi_fail.txt
 
+.azurecomponent
+Device/local_config.h
+Device/.build
+
