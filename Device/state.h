@@ -21,7 +21,7 @@ public:
     int updateState(char* payload);
 
     bool sleepStatusChanged;
-    bool statusRequested;
+
 };
 
 #endif

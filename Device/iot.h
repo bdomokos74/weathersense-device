@@ -10,11 +10,7 @@ class IotConn {
 private:
   int messageCount = 0;
   bool hasIoTHub = false;
-  static bool ack;
-  static bool sendFailed;
-  unsigned long sendTime;
-  static bool activeSession;
-
+  
   static void ConnectionStatusCallback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOTHUB_CLIENT_CONNECTION_STATUS_REASON reason);
   static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result);
   static void MessageCallback(const char* payLoad, int size);
@@ -24,16 +20,22 @@ private:
   static int readInt(const char* but, const char* tag);
 public:
 
-  static bool messageSending;
-
   IotConn(WifiNet *wifiNet, char* connectionString, State *deviceState);
   int sendData(char* msg);
-  bool messageDone();
   bool isConnected();
   bool isSendingOn();
   void close();
-  void eventLoop();
-  static void shellLoop();
+  int eventLoop();
+
+  static bool activeSession;
+  static bool messageSendingOn;
+  static bool statusRequested;
+  static bool statusAck;
+  static bool sendPending;
+  static bool sendFailed;
+  static bool sendAck;
+  static unsigned long sendTime;
+
 };
 
 #endif

@@ -33,9 +33,17 @@ void SevenSeg::print(int i) {
   sseg.println(i);
   sseg.writeDisplay();
 }
+void SevenSeg::printHex(int i) {
+  sseg.print(i, HEX);
+  sseg.writeDisplay();
+}
 
 void SevenSeg::print(float f) {
   sseg.println(f);
+  sseg.writeDisplay();
+}
+void SevenSeg::clear() {
+  sseg.clear();
   sseg.writeDisplay();
 }
 

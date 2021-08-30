@@ -3,6 +3,7 @@
 const char *bmeMessageTemplate = "{\"messageId\":%d,\"Temperature\":%.2f,\"Pressure\":%.2f,\"Humidity\":%.2f,\"bat\":%.2f,\"offset\":%d}\n";
 const char *dallasMessageTemplate = "{\"messageId\":%d,\"Temperature\":%.2f,\"bat\":%.2f,\"offset\":%d}\n"; 
 const char *bothTemplate = "{\"Id\":%d,\"t1\":%.2f,\"p\":%.2f,\"h\":%.2f,\"bat\":%.2f,\"offset\":%d,\"t2\":%.2f}\n";
+const char *measTemplate = "{\"Temperature\":%.2f,\"Pressure\":%.2f,\"Humidity\":%.2f}";
 
 #define RTC_BUF_SIZE 3072
 RTC_DATA_ATTR unsigned long startTimestamp;
@@ -61,6 +62,19 @@ int Storage::storeMeasurement(boolean doSleep, int sleepTimeSec) {
   return writtenChars;
 }
 
+int Storage::getMeasurementString(char* buf, int size) {
+  int writtenChars = 0;
+  float temp;
+  float pres;
+  float hum;
+  if(bmeSensor->isConnected()) {
+    temp = bmeSensor->readTemp();
+    pres = bmeSensor->readPressure();
+    hum = bmeSensor->readHumidity();
+    writtenChars = snprintf(buf, size, measTemplate, temp, pres, hum);
+  }
+  return writtenChars;
+}
 void Storage::printStatus() {
     Serial.print("Measurement stored: numStored/datalen: ");
       Serial.print(numStoredMeasurements);Serial.print("/");

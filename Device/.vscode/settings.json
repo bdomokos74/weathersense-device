@@ -8,5 +8,6 @@
     "IoTWorkbench.BoardId": "esp32",
     "arduino.path": "/Applications",
     "arduino.commandPath": "Contents/MacOS/arduino",
-    "arduino.additionalUrls": ""
+    "arduino.additionalUrls": "",
+    "arduino.logLevel": "verbose"
 }

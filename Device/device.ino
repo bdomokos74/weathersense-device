@@ -44,10 +44,11 @@ RTC_DATA_ATTR int wakeCnt = 0;
 
 void wakeLoop();
 void setup() {
-  start_interval_ms = millis();
   Serial.begin(115200);
   while(!Serial) {};
+  delay(1000);
 
+  start_interval_ms = millis();
   Wire.begin();
 
   led = new LedUtil(LED_PIN);  
@@ -59,6 +60,13 @@ void setup() {
   Serial.println("ESP32 Device Initializing..."); 
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
+
+  char buf[100];
+  if(storage->getMeasurementString(buf, 100)>0) {
+    Serial.println(buf);
+  } else {
+    Serial.println("No BME!!!!!!");
+  }
 
   esp_sleep_wakeup_cause_t reason;
   reason = esp_sleep_get_wakeup_cause();
@@ -113,13 +121,12 @@ void wakeLoop() {
     Serial.println(millis()-start_interval_ms);
     
     if(iotConn->sendData(storage->getDataBuf())==0) {
-      storage->reset();
-      led->flashLed();
+        storage->reset();
+        led->flashLed();
     } else {
       led->flashLedErr();
     }
-    iotConn->eventLoop();
-
+    
     iotConn->close();
     wifiNet->close();
   } else {
@@ -180,11 +187,9 @@ void loop() {
             } else {
               led->flashLedErr();
             }
+
             iotConn->eventLoop();
 
-          } else {
-            Serial.print("IOT - only check");
-            iotConn->eventLoop();
           }
           iotConn->close();
           wifiNet->close();

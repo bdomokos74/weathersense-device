@@ -14,6 +14,8 @@ public:
   bool isConnected();
   void print(int i);
   void print(float f);
+  void printHex(int i);
+  void clear();
   void showColon(bool c);
 };
 

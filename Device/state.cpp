@@ -9,7 +9,6 @@ const char *statusTemplate = "{\"doSleep\":\"%d\",\"sleepTimeSec\":\"%d\",\"meas
 
 State::State() {
     sleepStatusChanged = false;
-    statusRequested = false;
 }
 
 int State::getDoSleep() {return doSleep;};
@@ -77,5 +76,5 @@ int State::updateState(char* payload) {
         }
         doSleep = val;
     }
-    statusRequested = hasChange;
+    return hasChange;
 }
