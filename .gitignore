@@ -140,3 +140,5 @@ arduino_log_wifi_fail.txt
 Device/local_config.h
 Device/.build
 
+esp32-iot-log*
+

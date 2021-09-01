@@ -1,16 +1,18 @@
+#ifndef MSTORAGE_H
+#define MSTORAGE_H
+
 #include "bme_sensor.h"
 #include "dallas_sensor.h"
-
-#ifndef STORAGE_H
-#define STORAGE_H
+#include "state.h"
 
 class Storage {
 private:
   BMESensor *bmeSensor;
   DallasSensor *dallasSensor;
+  State *deviceState;
 public:
-  Storage(BMESensor *bme, DallasSensor *dallas);
-  int storeMeasurement(bool doSleep, int sleepTimeSec);
+  Storage(BMESensor *bme, DallasSensor *dallas, State *state);
+  int storeMeasurement();
   void printStatus();
   void reset();
   int getNumStoredMeasurements();

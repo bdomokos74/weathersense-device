@@ -2,30 +2,29 @@
  * A simple Azure IoT example for sending telemetry to Iot Hub.
  */
 
+#define DO_SEVENSEG 1
+
 #include "wifinet.h"
 #include "local_config.h"
 #include "iot.h"
 #include "led.h"
+#ifdef DO_SEVENSEG
 #include "sevenseg.h"
+#endif
 #include "bme_sensor.h"
 #include "dallas_sensor.h"
 #include "storage.h"
 #include "deep_sleep.h"
 #include "state.h"
 #include "esp_task_wdt.h"
-
-#define DO_SEVENSEG 1
+#include "esp_system.h"
 
 #define DALLAS_PIN 15
-//#define LED_PIN 13
-#define LED_PIN 2
+//#define DEFAULT_LED_PIN 13
+#define DEFAULT_LED_PIN 2
 #define BME_ADDR 0x76
 
 #define WDT_TIMEOUT 600
-
-char* wifiSsid = WIFI_SSID;
-char* wifiPw = WIFI_PW;
-char* iotConnString = DEV_CONN_STR;
 
 BMESensor *bmeSensor;
 DallasSensor *dallasSensor;
@@ -37,181 +36,159 @@ IotConn *iotConn;
 LedUtil *led;
 Storage *storage;
 State *deviceState;
+DeepSleep * deepSleep;
 
 unsigned long start_interval_ms = 0;
 
-RTC_DATA_ATTR int wakeCnt = 0;
+unsigned long lastSend = 0;
+unsigned long loopCnt = 0;
 
-void wakeLoop();
-void setup() {
+RTC_DATA_ATTR bool prevConnFailed = false;
+
+void test();
+void debugState();
+
+void setup() 
+{
   Serial.begin(115200);
   while(!Serial) {};
-  delay(1000);
+
+  Serial.println("ESP32 Device Initializing..."); 
 
   start_interval_ms = millis();
   Wire.begin();
 
-  led = new LedUtil(LED_PIN);  
+  led = new LedUtil(DEFAULT_LED_PIN);  
   bmeSensor = new BMESensor(BME_ADDR);
   dallasSensor = new DallasSensor(DALLAS_PIN);
-  storage = new Storage(bmeSensor, dallasSensor);
   deviceState = new State();
+  storage = new Storage(bmeSensor, dallasSensor, deviceState);
+  wifiNet = new WifiNet();
+  iotConn = new IotConn(wifiNet);
+  deepSleep = new DeepSleep(wifiNet, iotConn, storage, deviceState, led);
 
-  Serial.println("ESP32 Device Initializing..."); 
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
 
-  char buf[100];
-  if(storage->getMeasurementString(buf, 100)>0) {
-    Serial.println(buf);
-  } else {
-    Serial.println("No BME!!!!!!");
-  }
-
-  esp_sleep_wakeup_cause_t reason;
-  reason = esp_sleep_get_wakeup_cause();
-  DeepSleep::log_wakeup(reason);
-  if(deviceState->getDoSleep() && reason==ESP_SLEEP_WAKEUP_TIMER) {
+  test();
+  
+  deepSleep->logWakeup();
+  if(deviceState->getDoSleep() && deepSleep->isWakeup()) {
     
       Serial.println("before wakeloop");
-      wakeLoop();
+      deepSleep->wakeLoop();
       Serial.println("after wakeloop");
     
-  } else {
+  } else 
+  {
 
 #ifdef DO_SEVENSEG
   sevenSeg = new SevenSeg();
 #endif // DO_SEVENSEG
 
-  }
-}
-
-void wakeLoop() {
-  Serial.print("Wake number: ");
-  Serial.println(wakeCnt);
-
-  esp_task_wdt_reset();
-  int writtenChars = storage->storeMeasurement(deviceState->getDoSleep(), deviceState->getSleepTimeSec());
-  
-  if(writtenChars==0) {
-    // no sensors detected, flash the led and sleep
-    esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * deviceState->getSleepTimeSec());
-    Serial.println("No sensors, go to sleep");
-    ++wakeCnt;
-    esp_deep_sleep_start();
-  }
-    
-  if(storage->getNumStoredMeasurements() < deviceState->getMeasureBatchSize() && wakeCnt>0 || storage->getNumStoredMeasurements() == 0) {
-      led->flashLed1();
-      storage->printStatus();
-      
-      Serial.println("Go to sleep");
-      esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * deviceState->getSleepTimeSec());
-
-      ++wakeCnt;
-      esp_deep_sleep_start();
-  }
-  
-  wifiNet = new WifiNet(wifiSsid, wifiPw);
-  iotConn = new IotConn(wifiNet, iotConnString, deviceState);
-
-  if (iotConn->isConnected() )
-  {
-    Serial.print("IoTConn done, start time (ms): ");
-    Serial.println(millis()-start_interval_ms);
-    
-    if(iotConn->sendData(storage->getDataBuf())==0) {
-        storage->reset();
-        led->flashLed();
-    } else {
-      led->flashLedErr();
-    }
-    
-    iotConn->close();
-    wifiNet->close();
-  } else {
+    wifiNet->connect();
+    iotConn->connect();
     if(!iotConn->isConnected()) {
-      Serial.print("No IoT conn, (ms): ");
-    } else if(!bmeSensor->isConnected()) {
-      Serial.print("No BME sensor, (ms): ");
+      prevConnFailed = true;
     }
-    Serial.println(millis()-start_interval_ms);
-    led->flashLedErr();
   }
-
-  Serial.println("Go sleep");
-  esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * deviceState->getSleepTimeSec());
-  ++wakeCnt;
-  esp_deep_sleep_start();  
-    
 }
 
-unsigned long lastSend = 0;
-unsigned long loopCnt = 0;
-void loop() {
-    esp_task_wdt_reset();
-  if((int)(millis() - lastSend ) > deviceState->getMeasureIntervalMs() ) {
-    int writtenChars = storage->storeMeasurement(deviceState->getDoSleep(), deviceState->getSleepTimeSec());
+void loop() 
+{
+  if(loopCnt==0 || ((int)(millis() - lastSend ) > deviceState->getMeasureIntervalMs()) )
+  {
+    int writtenChars = storage->storeMeasurement();
+    led->flashLed1();
+    storage->printStatus();
 
 #ifdef DO_SEVENSEG 
-      if(bmeSensor->isConnected()) {
+      if(bmeSensor->isConnected()) 
+      {
         float temp = bmeSensor->readTemp();
-        if(sevenSeg->isConnected()) {
+        if(sevenSeg->isConnected()) 
+        {
           sevenSeg->print(temp);
         }
       }
 #endif
-    Serial.print("numStored/batchsize/wakecnt/loopcnt/loopcnt%batch =");
-    Serial.print(storage->getNumStoredMeasurements());Serial.print("/");
-    Serial.print(deviceState->getMeasureBatchSize());Serial.print("/");
-    Serial.print(wakeCnt);Serial.print("/");
-    Serial.print(loopCnt);Serial.print("/");
-    Serial.println(loopCnt % deviceState->getMeasureBatchSize());
+
+    debugState();
     
-    if(storage->getNumStoredMeasurements() < deviceState->getMeasureBatchSize() && (loopCnt % deviceState->getMeasureBatchSize())>0) {
-        led->flashLed1();
-        storage->printStatus();
-    }
-    else {
-        wifiNet = new WifiNet(wifiSsid, wifiPw);
-        iotConn = new IotConn(wifiNet, iotConnString, deviceState);
+    if(prevConnFailed || 
+      storage->getNumStoredMeasurements() >= deviceState->getMeasureBatchSize() ) 
+    {
+        if(!wifiNet->isConnected())   
+        {
+          wifiNet->connect();
+          iotConn->connect();
+        }
         if (iotConn->isConnected() )
         {
+          prevConnFailed = false;
+          esp_task_wdt_reset();
+
           Serial.print("IoTConn done, start time (ms): ");
           Serial.println(millis()-start_interval_ms);
 
-          if(storage->getNumStoredMeasurements()>0) {
-            if(iotConn->sendData(storage->getDataBuf())==0) {
-              led->flashLed();
+          if(storage->getNumStoredMeasurements()>0) 
+          {
+            if(iotConn->sendData()) 
+            {
+              Serial.println("Send OK");
+              led->flashLedSend();
               storage->reset();
             } else {
               led->flashLedErr();
             }
-
-            iotConn->eventLoop();
-
           }
-          iotConn->close();
-          wifiNet->close();
-          loopCnt = 0;
         } else {
-          if(!iotConn->isConnected()) {
-            Serial.print("No IoT conn, (ms): ");
-          } else if(!bmeSensor->isConnected()) {
-            Serial.print("No BME sensor, (ms): ");
-          }
-          Serial.println(millis()-start_interval_ms);
-          led->flashLedErr();
+          prevConnFailed = true;
         }
     }
     
     lastSend = millis();
     loopCnt += 1;
-  } else {
-    if( iotConn!=NULL && iotConn->isConnected() ) {
-      iotConn->eventLoop();
-    }
   }
-  
-  delay(100);
+  iotConn->eventHandler();
+  Esp32MQTTClient_Check();
+
+  if(deviceState->getDoSleep()) {
+    Serial.println("Sleep mode was requested, going to sleep...");
+    iotConn->close();
+    wifiNet->close();
+    deepSleep->goSleep();
+  }
+
+  delay(10);
 }
+
+void debugState() 
+{
+    Serial.print("numStored/batchsize/loopcnt/loopcnt%batch =");
+    Serial.print(storage->getNumStoredMeasurements());Serial.print("/");
+    Serial.print(deviceState->getMeasureBatchSize());Serial.print("/");
+    Serial.print(loopCnt);Serial.print("/");
+    Serial.println(loopCnt % deviceState->getMeasureBatchSize());
+
+    Serial.print("wifi/iot: ");
+    Serial.print(wifiNet->isConnected());Serial.print("/");Serial.println(iotConn->isConnected());
+}
+
+void test() 
+{
+  Serial.print("esp_reset_reason()=");Serial.println(esp_reset_reason());
+  Serial.print("esp_timer_get_time()=");Serial.println(esp_timer_get_time());
+  Serial.print("esp_get_free_heap_size()=");Serial.println(esp_get_free_heap_size());
+  Serial.print("esp_get_minimum_free_heap_size()=");Serial.println(esp_get_minimum_free_heap_size());
+
+  char buf[100];
+  if(storage->getMeasurementString(buf, 100)>0) 
+  {
+    Serial.println(buf);
+  } else 
+  {
+    Serial.println("No BME!!!!!!");
+  }
+}
+

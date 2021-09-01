@@ -1,7 +1,7 @@
-#include "Arduino.h"
+#ifndef DSTATE_H
+#define DSTATE_H
 
-#ifndef STATE_H
-#define STATE_H
+#include "Arduino.h"
 
 #define MEASURE_INTERVAL_MS 10000
 #define MEASURE_BATCH_SIZE 5

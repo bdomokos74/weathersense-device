@@ -12,96 +12,113 @@
 
 #define STATUS_MSG_MAX_LEN 100
 
+char* iotConnString = DEV_CONN_STR;
+volatile bool hasIoTHub = false;
+
 extern State *deviceState;
 extern LedUtil *led;
 extern SevenSeg *sevenSeg;
 extern Storage *storage;
 
-bool IotConn::messageSendingOn = true;
+static bool messageSendingOn = true;
+static bool statusRequested = false;
 
-bool IotConn::activeSession = false;
-bool IotConn::statusRequested = false;
-bool IotConn::statusAck = false;
-bool IotConn::sendPending = false;
-bool IotConn::sendFailed = false;
-bool IotConn::sendAck = false;
 unsigned long IotConn::sendTime = 0;
 
-IotConn::IotConn(WifiNet *wifiNet, char* connectionString, State* deviceState) {
+static void ConnectionStatusCallback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOTHUB_CLIENT_CONNECTION_STATUS_REASON reason);
+static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result);
+static void MessageCallback(const char* payLoad, int size);
+static void DeviceTwinCallback(DEVICE_TWIN_UPDATE_STATE updateState, const unsigned char *payLoad, int size);
+static int DeviceMethodCallback(const char *methodName, const unsigned char *payload, int size, unsigned char **response, int *response_size);
+static void ReportConfirmationCallback(int staus);
+
+IotConn::IotConn(WifiNet *wifiNet) 
+{
+  this->wifiNet = wifiNet;
+}
+
+bool IotConn::connect() 
+{
+  if(hasIoTHub) return true;
 
   if(!wifiNet->isConnected()) {
     Serial.println("No WiFi, skip IoT");
     hasIoTHub = false;
-    return;
+    return false;
   }
   Serial.println("Connecting IoT");
   
-  if (!Esp32MQTTClient_Init((const uint8_t*)connectionString, true))
+  if (!Esp32MQTTClient_Init((const uint8_t*)iotConnString, true, true))
   {
     hasIoTHub = false;
     Serial.println("Initializing IoT hub failed.");
-  } else {
-    hasIoTHub = true;
-    activeSession = false;
-
-    Esp32MQTTClient_SetSendConfirmationCallback(IotConn::SendConfirmationCallback);
-    Esp32MQTTClient_SetMessageCallback(IotConn::MessageCallback);
-    Esp32MQTTClient_SetDeviceTwinCallback(IotConn::DeviceTwinCallback);
-    Esp32MQTTClient_SetDeviceMethodCallback(IotConn::DeviceMethodCallback);
-    Esp32MQTTClient_SetConnectionStatusCallback(IotConn::ConnectionStatusCallback);
-    Esp32MQTTClient_SetReportConfirmationCallback(IotConn::ReportConfirmationCallback);
+  } else 
+  {
+    Esp32MQTTClient_SetSendConfirmationCallback(SendConfirmationCallback);
+    Esp32MQTTClient_SetMessageCallback(MessageCallback);
+    Esp32MQTTClient_SetDeviceTwinCallback(DeviceTwinCallback);
+    Esp32MQTTClient_SetDeviceMethodCallback(DeviceMethodCallback);
+    Esp32MQTTClient_SetConnectionStatusCallback(ConnectionStatusCallback);
+    Esp32MQTTClient_SetReportConfirmationCallback(ReportConfirmationCallback);
     Serial.println("IoT Hub successfully connected");
+    hasIoTHub = true;
   }
+  return hasIoTHub;
 }
 
-int IotConn::sendData(char* msg) {
-    
+bool IotConn::isConnected() 
+{
+  return hasIoTHub;
+}
+
+void IotConn::close() 
+{
+  hasIoTHub =false;
+  Esp32MQTTClient_Close();
+}
+
+bool IotConn::sendData() 
+{
+    char *msg = storage->getDataBuf();
+
     Serial.println("sendData called with msg:");
     Serial.println(msg);
     //EVENT_INSTANCE* message = Esp32MQTTClient_Event_Generate(msg, MESSAGE);
-    if(!Esp32MQTTClient_SendEvent(msg)) {
-      return -1;
-    }
-    sendPending = true;
-    sendTime = millis();
-    eventLoop();
-    return 0;
+    return Esp32MQTTClient_SendEvent(msg);
 }
 
-void IotConn::SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result)
+static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result)
 {
   if (result == IOTHUB_CLIENT_CONFIRMATION_OK)
   {
-    Serial.println("Send Confirmation Callback finished.");
-    sendAck = true;
-    Serial.print("after sendAck set: "); Serial.println(IotConn::sendAck);
+    Serial.println("SendConfirmationCallback OK");
   } else {
     Serial.print("SendConfirmationCallback failed: ");
     Serial.println(result);
-    sendFailed = true;
   }
 }
 
-
-void IotConn::ConnectionStatusCallback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOTHUB_CLIENT_CONNECTION_STATUS_REASON reason)
+static void ConnectionStatusCallback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOTHUB_CLIENT_CONNECTION_STATUS_REASON reason)
 {
+  // OK:result==0  FAILED:result=1
   Serial.print("IotConn::STATUS callback -> result: ");
   Serial.print(result);
   Serial.print(" reason: ");
   Serial.println(result);
+  if(result==0)
+    hasIoTHub = true;
+  else
+    hasIoTHub = false;
 }
 
-void IotConn::MessageCallback(const char* payLoad, int size)
+static void MessageCallback(const char* payLoad, int size)
 {
   Serial.println("IotConn::Message callback:");
   Serial.println(payLoad);
-  if(strncmp(payLoad, "cmd", 3)==0) {
-    Serial.println("running shell");
-    activeSession = true;
-  }
+
 }
 
-void IotConn::DeviceTwinCallback(DEVICE_TWIN_UPDATE_STATE updateState, const unsigned char *payLoad, int size)
+static void DeviceTwinCallback(DEVICE_TWIN_UPDATE_STATE updateState, const unsigned char *payLoad, int size)
 {
   Serial.print("IotConn::DeviceTwinCallback called\nupdatestate=");
   Serial.println(updateState);
@@ -120,7 +137,7 @@ void IotConn::DeviceTwinCallback(DEVICE_TWIN_UPDATE_STATE updateState, const uns
   free(zeroTerminated);
 }
 
-int IotConn::DeviceMethodCallback(const char *methodName, const unsigned char *payload, int size, unsigned char **response, int *response_size)
+static int DeviceMethodCallback(const char *methodName, const unsigned char *payload, int size, unsigned char **response, int *response_size)
 {
   Serial.println("IotConn::DeviceMethodCallback called");
   LogInfo("Try to invoke method %s", methodName);
@@ -167,10 +184,6 @@ int IotConn::DeviceMethodCallback(const char *methodName, const unsigned char *p
       sevenSeg->clear();
     }
   }
-  else if (strcmp(methodName, "exit") == 0)
-  {
-    activeSession=false;
-  }
   else
   {
     LogInfo("No method %s found", methodName);
@@ -184,66 +197,27 @@ int IotConn::DeviceMethodCallback(const char *methodName, const unsigned char *p
   return result;
 }
 
-bool IotConn::isConnected() {
-  return hasIoTHub;
+static void ReportConfirmationCallback(int status)
+{
+  Serial.print("IotConn::ReportConfirmation callback -> status: ");
+  Serial.println(status);
+
 }
 
 bool IotConn::isSendingOn() {
   return messageSendingOn;
 }
 
-void IotConn::close() {
-  hasIoTHub =false;
-  Esp32MQTTClient_Close();
-}
+int IotConn::eventHandler() {
 
-
-int IotConn::eventLoop() {
-  bool error = false;
-  Esp32MQTTClient_Check();
-  while(
-    statusRequested||
-    sendPending||
-    activeSession
-   ) {
-    if(statusRequested) {
+    if(statusRequested && hasIoTHub) {
       char buf[100];
       deviceState->getStatusString(buf, 100);
       Serial.print("Sending status: ");Serial.println(buf);
       Esp32MQTTClient_ReportState(buf);
       statusRequested = false;
     }
-    if(sendPending) {
-      if(sendAck) {
-        sendPending = false;
-      }
-      if(sendFailed) {
-        sendPending = false;
-        error = true;
-        Serial.println("Send failed");
-      }
-      if((int)(millis()-sendTime)>MESSAGE_ACK_TIMEOUT_MS) {
-        sendPending = false;
-        error = true;
-        Serial.println("Send timeout");
-      }
-    }
-    Esp32MQTTClient_Check();
-    delay(50);
-  }
-  return error;
+    
+    
 }
-extern int wakeCnt;
-void IotConn::ReportConfirmationCallback(int status)
-{
-  Serial.print("IotConn::ReportConfirmation callback -> status: ");
-  Serial.println(status);
 
-  if(deviceState->sleepStatusChanged) {
-    deviceState->sleepStatusChanged = false;
-    wakeCnt = 1;
-    Serial.println("doSleep requested, going to sleep");
-    esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * deviceState->getSleepTimeSec());
-    esp_deep_sleep_start();
-  }
-}

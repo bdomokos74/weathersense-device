@@ -1,14 +1,16 @@
-#include "local_config.h"
-#include <WiFi.h>
-
 #ifndef WIFINET_H
 #define WIFINET_H
+
+#include "local_config.h"
+#include <WiFi.h>
 
 class WifiNet {
 private:
   bool hasWifi;
+
 public:
-  WifiNet(char* ssid, char* pw);
+  WifiNet();
+  bool connect();
   bool isConnected();
   void close();
 };

@@ -24,6 +24,11 @@ void LedUtil::flashLed() {
 void LedUtil::flashLed1() {
   _flashLed(1, 300);
 }
+void LedUtil::flashLedSend() {
+  _flashLed(2, 100);
+  delay(1000);
+  _flashLed(2, 100);
+}
 void LedUtil::ledOn() {
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, HIGH);

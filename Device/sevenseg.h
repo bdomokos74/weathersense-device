@@ -1,7 +1,7 @@
-#include "Adafruit_LEDBackpack.h"
-
 #ifndef SEVENSEG_H
 #define SEVENSEG_H
+
+#include "Adafruit_LEDBackpack.h"
 
 class SevenSeg {
 private:

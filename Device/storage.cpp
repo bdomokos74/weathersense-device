@@ -13,12 +13,15 @@ RTC_DATA_ATTR char *bufPoi = dataBuf;
 RTC_DATA_ATTR int numStoredMeasurements = 0;
 RTC_DATA_ATTR int msgId = 0;
 
-Storage::Storage(BMESensor *bme, DallasSensor *dallas) {
+Storage::Storage(BMESensor *bme, DallasSensor *dallas, State *state) {
     bmeSensor = bme;
     dallasSensor = dallas;
+    deviceState = state;
 }
 
-int Storage::storeMeasurement(boolean doSleep, int sleepTimeSec) {
+int Storage::storeMeasurement() {
+    boolean doSleep = deviceState->getDoSleep();
+    int sleepTimeSec = deviceState->getSleepTimeSec();
     float temp;
     float temp2;
     float pres;

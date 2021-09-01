@@ -1,8 +1,8 @@
-#include <OneWire.h>
-#include <DallasTemperature.h>
-
 #ifndef DALLAS_SENSOR_H
 #define DALLAS_SENSOR_H
+
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 #define tohex(v) ( ((v)<10)?'0'+(v):'A'+(v)-10 )
 

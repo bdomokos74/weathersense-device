@@ -10,6 +10,7 @@ public:
   void flashLedErr(); 
   void flashLed();
   void flashLed1();
+  void flashLedSend();
   void ledOn();
   void ledOff();
 };

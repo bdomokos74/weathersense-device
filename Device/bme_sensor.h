@@ -1,7 +1,7 @@
-#include <Adafruit_BME280.h>
-
 #ifndef BMEUTIL_H
 #define BMEUTIL_H
+
+#include <Adafruit_BME280.h>
 
 class BMESensor {
 private:
