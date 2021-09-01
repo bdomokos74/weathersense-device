@@ -141,4 +141,4 @@ Device/local_config.h
 Device/.build
 
 esp32-iot-log*
-
+adafruit-log*

@@ -4,7 +4,7 @@ RTC_DATA_ATTR int doSleep = 0;
 RTC_DATA_ATTR int sleepTimeSec = SLEEP_TIME_SEC;
 RTC_DATA_ATTR int measureIntervalMs = MEASURE_INTERVAL_MS;
 RTC_DATA_ATTR int measureBatchSize = MEASURE_BATCH_SIZE;
-RTC_DATA_ATTR int ledPin = 0;
+RTC_DATA_ATTR int ledPin = DEFAULT_LED_PIN;
 
 const char *statusTemplate = "{\"doSleep\":\"%d\",\"sleepTimeSec\":\"%d\",\"measureIntervalMs\":\"%d\",\"measureBatchSize\":\"%d\",\"ledPin\":\"%d\"}";
 
@@ -86,7 +86,7 @@ int State::updateState(char* payload) {
         if(ledPin!=val) {
         hasChange = true;
         Serial.print(" CHANGED from: ");Serial.println(ledPin);
-        led->setLedPin(ledPin);
+        led->setLedPin(val);
         } else {
         Serial.println("");
         }

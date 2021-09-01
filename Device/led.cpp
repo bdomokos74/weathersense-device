@@ -1,8 +1,8 @@
 #include "Arduino.h"
 #include "led.h"
 
-LedUtil::LedUtil(int pin) {
-  ledPin = pin;
+LedUtil::LedUtil() {
+  ledPin = DEFAULT_LED_PIN;
 }
 
 void LedUtil::setLedPin(int pin) {

@@ -56,24 +56,25 @@ void DeepSleep::wakeLoop() {
 
   if(prevConnFailed) {
     Serial.println("prevconnfailed -> try wifi");
+  } else 
+  {
+    esp_task_wdt_reset();
   }
 
   if(prevConnFailed || storage->getNumStoredMeasurements() >= deviceState->getMeasureBatchSize() 
     || wakeCnt==0) 
   {
-    wifiNet->connect();
-    if(wifiNet->isConnected()) 
-    {
-      iotConn->connect();
-    }
+    wifiNet->connect();  
+    iotConn->connect();
     
     if(iotConn->isConnected()) 
     {
       esp_task_wdt_reset();
-
+      prevConnFailed = false;
+      
       Serial.print("iot connected (ms): ");
       Serial.println((int)(millis()-start_interval_ms));
-      prevConnFailed = false;
+      
 
       unsigned long loopStartTime = millis();
       Serial.print("start loop");

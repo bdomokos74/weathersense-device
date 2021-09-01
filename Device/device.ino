@@ -21,7 +21,7 @@
 
 #define DALLAS_PIN 15
 //#define DEFAULT_LED_PIN 13
-#define DEFAULT_LED_PIN 2
+
 #define BME_ADDR 0x76
 
 #define WDT_TIMEOUT 600
@@ -58,10 +58,11 @@ void setup()
   start_interval_ms = millis();
   Wire.begin();
 
-  led = new LedUtil(DEFAULT_LED_PIN);  
+  led = new LedUtil();  
   bmeSensor = new BMESensor(BME_ADDR);
   dallasSensor = new DallasSensor(DALLAS_PIN);
   deviceState = new State(led);
+  led->setLedPin(deviceState->getLedPin());
   storage = new Storage(bmeSensor, dallasSensor, deviceState);
   wifiNet = new WifiNet();
   iotConn = new IotConn(wifiNet);
