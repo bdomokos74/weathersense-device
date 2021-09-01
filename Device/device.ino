@@ -66,6 +66,9 @@ void setup()
   wifiNet = new WifiNet();
   iotConn = new IotConn(wifiNet);
   deepSleep = new DeepSleep(wifiNet, iotConn, storage, deviceState, led);
+#ifdef DO_SEVENSEG
+  sevenSeg = new SevenSeg();
+#endif // DO_SEVENSEG
 
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
@@ -81,11 +84,9 @@ void setup()
     
   } else 
   {
-
 #ifdef DO_SEVENSEG
-  sevenSeg = new SevenSeg();
+  sevenSeg->connect();
 #endif // DO_SEVENSEG
-
     wifiNet->connect();
     iotConn->connect();
     if(!iotConn->isConnected()) {
@@ -103,6 +104,10 @@ void loop()
     storage->printStatus();
 
 #ifdef DO_SEVENSEG 
+      if(!sevenSeg->isConnected()) 
+      {
+        sevenSeg->connect();
+      }
       if(bmeSensor->isConnected()) 
       {
         float temp = bmeSensor->readTemp();

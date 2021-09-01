@@ -7,8 +7,13 @@
 // D -> SDA
 // C -> SCL
 
-SevenSeg::SevenSeg(int addr) {
+SevenSeg::SevenSeg(int addr) 
+{
   sevenSegAddr = addr;
+}
+
+bool SevenSeg::connect() 
+{
   // Wire.begin(); // NEEDED, put to setup()
   Wire.beginTransmission(sevenSegAddr);
   int errorResult = Wire.endTransmission();

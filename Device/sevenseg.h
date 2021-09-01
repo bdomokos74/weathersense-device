@@ -11,6 +11,7 @@ private:
 public:
   SevenSeg();
   SevenSeg(int addr);
+  bool connect();
   bool isConnected();
   void print(int i);
   void print(float f);
