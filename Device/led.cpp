@@ -5,6 +5,10 @@ LedUtil::LedUtil(int pin) {
   ledPin = pin;
 }
 
+void LedUtil::setLedPin(int pin) {
+  ledPin = pin;
+}
+
 void LedUtil::_flashLed(int num, int ms) {
   pinMode(ledPin, OUTPUT);
   for( int i = 0; i < num; i++) {

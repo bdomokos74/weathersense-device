@@ -61,7 +61,7 @@ void setup()
   led = new LedUtil(DEFAULT_LED_PIN);  
   bmeSensor = new BMESensor(BME_ADDR);
   dallasSensor = new DallasSensor(DALLAS_PIN);
-  deviceState = new State();
+  deviceState = new State(led);
   storage = new Storage(bmeSensor, dallasSensor, deviceState);
   wifiNet = new WifiNet();
   iotConn = new IotConn(wifiNet);

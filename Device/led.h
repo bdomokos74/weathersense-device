@@ -7,6 +7,7 @@ private:
   void _flashLed(int num, int ms);
 public:
   LedUtil(int ledPin);
+  void setLedPin(int ledPin);
   void flashLedErr(); 
   void flashLed();
   void flashLed1();
