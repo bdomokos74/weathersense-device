@@ -1,12 +1,10 @@
 #include "Arduino.h"
 #include "led.h"
 
-LedUtil::LedUtil() {
-  ledPin = DEFAULT_LED_PIN;
-}
+// handled  in state.cpp, persists between sleeps
+extern int ledPin;
 
-void LedUtil::setLedPin(int pin) {
-  ledPin = pin;
+LedUtil::LedUtil() {
 }
 
 void LedUtil::_flashLed(int num, int ms) {

@@ -20,7 +20,6 @@
 #include "esp_system.h"
 
 #define DALLAS_PIN 15
-//#define DEFAULT_LED_PIN 13
 
 #define BME_ADDR 0x76
 
@@ -58,11 +57,10 @@ void setup()
   start_interval_ms = millis();
   Wire.begin();
 
-  led = new LedUtil();  
   bmeSensor = new BMESensor(BME_ADDR);
   dallasSensor = new DallasSensor(DALLAS_PIN);
-  deviceState = new State(led);
-  led->setLedPin(deviceState->getLedPin());
+  deviceState = new State();
+  led = new LedUtil();
   storage = new Storage(bmeSensor, dallasSensor, deviceState);
   wifiNet = new WifiNet();
   iotConn = new IotConn(wifiNet);

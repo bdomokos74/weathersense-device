@@ -8,8 +8,7 @@ RTC_DATA_ATTR int ledPin = DEFAULT_LED_PIN;
 
 const char *statusTemplate = "{\"doSleep\":\"%d\",\"sleepTimeSec\":\"%d\",\"measureIntervalMs\":\"%d\",\"measureBatchSize\":\"%d\",\"ledPin\":\"%d\"}";
 
-State::State(LedUtil *_led) {
-    led = _led;
+State::State() {
     sleepStatusChanged = false;
 }
 
@@ -17,7 +16,6 @@ int State::getDoSleep() {return doSleep;};
 int State::getSleepTimeSec() {return sleepTimeSec;};
 int State::getMeasureIntervalMs() {return measureIntervalMs;};
 int State::getMeasureBatchSize() {return measureBatchSize;};
-int State::getLedPin() {return ledPin;};
 
 void State::getStatusString(char* buf, int len) {
     snprintf(buf, len, statusTemplate, doSleep, sleepTimeSec, measureIntervalMs, measureBatchSize, ledPin);
@@ -86,7 +84,6 @@ int State::updateState(char* payload) {
         if(ledPin!=val) {
         hasChange = true;
         Serial.print(" CHANGED from: ");Serial.println(ledPin);
-        led->setLedPin(val);
         } else {
         Serial.println("");
         }
