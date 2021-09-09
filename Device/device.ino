@@ -128,6 +128,8 @@ void loop()
         }
         if (iotConn->isConnected() )
         {
+          iotConn->subscribeC2D();
+          iotConn->subscribeMethods();
           prevConnFailed = false;
           esp_task_wdt_reset();
 
@@ -155,8 +157,6 @@ void loop()
     lastSend = millis();
     loopCnt += 1;
   }
-  //iotConn->eventHandler();
-  //Esp32MQTTClient_Check();
 
   if(deviceState->getDoSleep()) {
     Serial.println("Sleep mode was requested, going to sleep...");

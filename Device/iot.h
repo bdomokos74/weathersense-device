@@ -24,6 +24,8 @@ public:
   bool sendData();
   bool isConnected();
   bool requestTwinGet();
+  bool subscribeC2D();
+  bool subscribeMethods();
   void close();
 
   static unsigned long sendTime;

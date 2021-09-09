@@ -48,10 +48,8 @@ static bool initializeTime()
 }
 
 WifiNet::WifiNet() {
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  delay(100);
 }
+
 void _printState(wl_status_t state) {
   switch(state) {
     case WL_CONNECTED:

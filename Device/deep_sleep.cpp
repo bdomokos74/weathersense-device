@@ -63,12 +63,7 @@ void DeepSleep::wakeLoop() {
     || wakeCnt==0) 
   {
     wifiNet->connect();  
-    
     iotConn->connect();
-    unsigned long connStart = millis();
-    while(!iotConn->isConnected()&&(int)(millis()-connStart)<5000) {
-      delay(10);
-    }
     if(iotConn->isConnected())
     {
       esp_task_wdt_reset();
