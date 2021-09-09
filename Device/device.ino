@@ -2,22 +2,20 @@
  * A simple Azure IoT example for sending telemetry to Iot Hub.
  */
 
-#define DO_SEVENSEG 1
-
 #include "wifinet.h"
 #include "local_config.h"
 #include "iot.h"
 #include "led.h"
-#ifdef DO_SEVENSEG
 #include "sevenseg.h"
-#endif
 #include "bme_sensor.h"
 #include "dallas_sensor.h"
 #include "storage.h"
 #include "deep_sleep.h"
 #include "state.h"
+#include "log.h"
 #include "esp_task_wdt.h"
 #include "esp_system.h"
+
 
 #define DALLAS_PIN 15
 
@@ -44,14 +42,16 @@ unsigned long loopCnt = 0;
 
 RTC_DATA_ATTR bool prevConnFailed = false;
 
+
 void test();
 void debugState();
+void show7Seg();
 
 void setup() 
 {
   Serial.begin(115200);
   while(!Serial) {};
-
+  delay(100);
   Serial.println("ESP32 Device Initializing..."); 
 
   start_interval_ms = millis();
@@ -65,9 +65,7 @@ void setup()
   wifiNet = new WifiNet();
   iotConn = new IotConn(wifiNet);
   deepSleep = new DeepSleep(wifiNet, iotConn, storage, deviceState, led);
-#ifdef DO_SEVENSEG
   sevenSeg = new SevenSeg();
-#endif // DO_SEVENSEG
 
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
@@ -77,51 +75,52 @@ void setup()
   deepSleep->logWakeup();
   if(deviceState->getDoSleep() && deepSleep->isWakeup()) {
     
-      Serial.println("before wakeloop");
+      logMsg("before wakeloop");
       deepSleep->wakeLoop();
-      Serial.println("after wakeloop");
+      logMsg("after wakeloop");
     
   } else 
   {
-#ifdef DO_SEVENSEG
-  sevenSeg->connect();
-#endif // DO_SEVENSEG
+    sevenSeg->connect();
+
+    logMsg("trying wifi connect");
+
     wifiNet->connect();
     iotConn->connect();
+
     if(!iotConn->isConnected()) {
       prevConnFailed = true;
+      delay(deviceState->getMeasureIntervalMs());
     }
   }
+  loopCnt=0;
 }
 
 void loop() 
 {
+  // TODO
+  // else if (sasToken.IsExpired())
+  // {
+  //   Logger.Info("SAS token expired; reconnecting with a new one.");
+  //   (void)esp_mqtt_client_destroy(mqtt_client);
+  //   initializeMqttClient();
+  // }
+
   if(loopCnt==0 || ((int)(millis() - lastSend ) > deviceState->getMeasureIntervalMs()) )
   {
+    logMsg("meas loop");
     int writtenChars = storage->storeMeasurement();
     led->flashLed1();
     storage->printStatus();
 
-#ifdef DO_SEVENSEG 
-      if(!sevenSeg->isConnected()) 
-      {
-        sevenSeg->connect();
-      }
-      if(bmeSensor->isConnected()) 
-      {
-        float temp = bmeSensor->readTemp();
-        if(sevenSeg->isConnected()) 
-        {
-          sevenSeg->print(temp);
-        }
-      }
-#endif
+    show7Seg();
 
     debugState();
     
     if(prevConnFailed || 
       storage->getNumStoredMeasurements() >= deviceState->getMeasureBatchSize() ) 
     {
+        logMsg("connection loop");
         if(!wifiNet->isConnected())   
         {
           wifiNet->connect();
@@ -132,11 +131,13 @@ void loop()
           prevConnFailed = false;
           esp_task_wdt_reset();
 
-          Serial.print("IoTConn done, start time (ms): ");
-          Serial.println(millis()-start_interval_ms);
+          logMsg("connected loop");
 
-          if(storage->getNumStoredMeasurements()>0) 
+          if(  storage->getNumStoredMeasurements()>0)
           {
+            if(!iotConn->requestTwinGet()) {
+              logMsg("twin get req failed");
+            }
             if(iotConn->sendData()) 
             {
               Serial.println("Send OK");
@@ -154,8 +155,8 @@ void loop()
     lastSend = millis();
     loopCnt += 1;
   }
-  iotConn->eventHandler();
-  Esp32MQTTClient_Check();
+  //iotConn->eventHandler();
+  //Esp32MQTTClient_Check();
 
   if(deviceState->getDoSleep()) {
     Serial.println("Sleep mode was requested, going to sleep...");
@@ -196,3 +197,18 @@ void test()
   }
 }
 
+void show7Seg() 
+{
+  if(!sevenSeg->isConnected()) 
+    {
+      sevenSeg->connect();
+    }
+    if(bmeSensor->isConnected()) 
+    {
+      float temp = bmeSensor->readTemp();
+      if(sevenSeg->isConnected()) 
+      {
+        sevenSeg->print(temp);
+      }
+    }
+}

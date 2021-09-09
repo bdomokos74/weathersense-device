@@ -6,7 +6,7 @@ RTC_DATA_ATTR int measureIntervalMs = MEASURE_INTERVAL_MS;
 RTC_DATA_ATTR int measureBatchSize = MEASURE_BATCH_SIZE;
 RTC_DATA_ATTR int ledPin = DEFAULT_LED_PIN;
 
-const char *statusTemplate = "{\"doSleep\":\"%d\",\"sleepTimeSec\":\"%d\",\"measureIntervalMs\":\"%d\",\"measureBatchSize\":\"%d\",\"ledPin\":\"%d\"}";
+const char *statusTemplate = "{\"doSleep\":%d,\"sleepTimeSec\":%d,\"measureIntervalMs\":%d,\"measureBatchSize\":%d,\"ledPin\":%d}";
 
 State::State() {
     sleepStatusChanged = false;

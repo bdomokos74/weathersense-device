@@ -1,11 +1,14 @@
 #ifndef _WIOT_H
 #define _WIOT_H
 
-#include "Esp32MQTTClient.h"
+#include <mqtt_client.h>
+//#include "Esp32MQTTClient.h"
 #include "wifinet.h"
 #include "deep_sleep.h"
 #include "state.h"
 #include "storage.h"
+
+#define sizeofarray(a) (sizeof(a) / sizeof(a[0]))
 
 class IotConn {
 private:
@@ -20,10 +23,8 @@ public:
   bool connect();
   bool sendData();
   bool isConnected();
-  bool isSendingOn();
+  bool requestTwinGet();
   void close();
-  int eventHandler();
-
 
   static unsigned long sendTime;
 

@@ -2,7 +2,6 @@
 
 #define LOOP_TIME_MILLIS 10000
 
-extern unsigned long start_interval_ms;
 RTC_DATA_ATTR int wakeCnt = 0;
 extern bool prevConnFailed;
 
@@ -37,15 +36,14 @@ bool DeepSleep::isWakeup() {
 
 void DeepSleep::goSleep() 
 {
-  Serial.println("Go to sleep");
+  logMsg("go to sleep");
   ++wakeCnt;
   esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * deviceState->getSleepTimeSec());
   esp_deep_sleep_start();
 }
 
 void DeepSleep::wakeLoop() {
-  Serial.print("Wake number: ");
-  Serial.println(wakeCnt);
+  logMsg("wake number: ", wakeCnt);
 
   int writtenChars = storage->storeMeasurement();
   if(writtenChars>0) 
@@ -65,22 +63,22 @@ void DeepSleep::wakeLoop() {
     || wakeCnt==0) 
   {
     wifiNet->connect();  
-    iotConn->connect();
     
-    if(iotConn->isConnected()) 
+    iotConn->connect();
+    unsigned long connStart = millis();
+    while(!iotConn->isConnected()&&(int)(millis()-connStart)<5000) {
+      delay(10);
+    }
+    if(iotConn->isConnected())
     {
       esp_task_wdt_reset();
       prevConnFailed = false;
       
-      Serial.print("iot connected (ms): ");
-      Serial.println((int)(millis()-start_interval_ms));
-      
-
+      logMsg("iot connected, entering loop (sleepmode)");
       unsigned long loopStartTime = millis();
-      Serial.print("start loop");
       while((int)(millis()-loopStartTime)<LOOP_TIME_MILLIS)
       {
-        if (storage->getNumStoredMeasurements()>0)
+        if( storage->getNumStoredMeasurements()>0)
         {
           if(iotConn->sendData()) {
               led->flashLedSend();
@@ -89,18 +87,16 @@ void DeepSleep::wakeLoop() {
             led->flashLedErr();
           }
         }
-        iotConn->eventHandler();
-        Esp32MQTTClient_Check();
       }
-      Serial.print("end loop: ");Serial.println((int)(millis()-loopStartTime));
+      logMsg("end loop (sleepmode)", (int)(millis()-loopStartTime));
     } else {
-      Serial.print("iot connect failed (ms): ");
-      Serial.println((int)(millis()-start_interval_ms));
+      logMsg("iot connect failed");
       prevConnFailed = true;
     }
   }
   
   if(deviceState->getDoSleep()) {
+    logMsg("closing connections");
     iotConn->close();
     wifiNet->close(); 
 

@@ -1,11 +1,17 @@
 #ifndef SEVENSEG_H
 #define SEVENSEG_H
 
-#include "Adafruit_LEDBackpack.h"
+#include "local_config.h"
 
+#ifdef DO_SEVENSEG
+#include "Adafruit_LEDBackpack.h"
+#endif
 class SevenSeg {
 private:
+#ifdef DO_SEVENSEG
   Adafruit_7segment sseg;
+#endif
+
   bool hasSevenSeg = false;
   int sevenSegAddr;
 public:

@@ -142,3 +142,5 @@ Device/.build
 
 esp32-iot-log*
 adafruit-log*
+tmp/*
+logs/*

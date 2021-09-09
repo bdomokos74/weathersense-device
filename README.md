@@ -39,6 +39,34 @@ pip install -r requirements.txt
 python datacollector.py -
 ```
 
+
+#### Set up env
+
+https://github.com/Azure/azure-iot-arduino
+
+Under review... -> 
+https://github.com/Azure/azure-sdk-for-c/tree/main/sdk/samples/iot/aziot_esp32
+
+With Arduino ESP32 2.0.0 board version, it crashes.. downgrade to 1.6.0
+
+To check the backtrace, use:
+https://github.com/me-no-dev/EspExceptionDecoder
+
+Output:
+
+  Decoding stack results
+  0x400e0811: panic_abort at /home/runner/work/esp32-arduino-lib-builder/esp32-arduino-lib-builder/esp-idf/components/esp_system/panic.c line 402
+  0x4008bec9: esp_system_abort at /home/runner/work/esp32-arduino-lib-builder/esp32-arduino-lib-builder/esp-idf/components/esp_system/esp_system.c line 129
+  0x40091551: abort at /home/runner/work/esp32-arduino-lib-builder/esp32-arduino-lib-builder/esp-idf/components/newlib/abort.c line 46
+  0x401624ca: _Unwind_Resume at /builds/idf/crosstool-NG/.build/HOST-x86_64-apple-darwin12/xtensa-esp32-elf/src/gcc/libgcc/unwind.inc line 247
+  0x400d3411: mqtt_event_handler(esp_mqtt_event_handle_t) at /Users/balintdomokos/VSProjects/azure-sdk-for-c/sdk/samples/iot/aziot_esp32/aziot_esp32.ino line 132
+  0x4010c105: esp_mqtt_dispatch_event at /home/runner/work/esp32-arduino-lib-builder/esp32-arduino-lib-builder/esp-idf/components/mqtt/esp-mqtt/mqtt_client.c line 922
+  0x4010c145: esp_mqtt_dispatch_event_with_msgid at /home/runner/work/esp32-arduino-lib-builder/esp32-arduino-lib-builder/esp-idf/components/mqtt/esp-mqtt/mqtt_client.c line 913
+  0x4010c7ca: esp_mqtt_task at /home/runner/work/esp32-arduino-lib-builder/esp32-arduino-lib-builder/esp-idf/components/mqtt/esp-mqtt/mqtt_client.c line 1371
+
+Zip libs location for Arduino, can be added: Scratch/Libraries/
+/Users/<username>/Documents/Arduino/libraries/
+
 #### DOIT1
 
 - BME_ADDR 0x76

@@ -14,6 +14,7 @@ SevenSeg::SevenSeg(int addr)
 
 bool SevenSeg::connect() 
 {
+  #ifdef DO_SEVENSEG
   // Wire.begin(); // NEEDED, put to setup()
   Wire.beginTransmission(sevenSegAddr);
   int errorResult = Wire.endTransmission();
@@ -26,6 +27,10 @@ bool SevenSeg::connect()
     Serial.println("No seven seg found");
     hasSevenSeg = false;
   }
+  #else
+    hasSevenSeg = false;
+    return false;
+  #endif
 }
 
 SevenSeg::SevenSeg(): SevenSeg(0x70) {}
@@ -35,24 +40,34 @@ bool SevenSeg::isConnected() {
 }
 
 void SevenSeg::print(int i) {
+  #ifdef DO_SEVENSEG
   sseg.println(i);
   sseg.writeDisplay();
+  #endif
 }
 void SevenSeg::printHex(int i) {
+  #ifdef DO_SEVENSEG
   sseg.print(i, HEX);
   sseg.writeDisplay();
+  #endif
 }
 
 void SevenSeg::print(float f) {
+  #ifdef DO_SEVENSEG
   sseg.println(f);
   sseg.writeDisplay();
+  #endif
 }
 void SevenSeg::clear() {
+  #ifdef DO_SEVENSEG
   sseg.clear();
   sseg.writeDisplay();
+  #endif
 }
 
 void SevenSeg::showColon(bool col) {
+  #ifdef DO_SEVENSEG
   sseg.drawColon(col);
   sseg.writeDisplay();
+  #endif
 }

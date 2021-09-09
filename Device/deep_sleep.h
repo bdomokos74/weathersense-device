@@ -6,6 +6,7 @@
 #include "storage.h"
 #include "state.h"
 #include "led.h"
+#include "log.h"
 #include "esp_task_wdt.h"
 
 #define uS_TO_S_FACTOR 1000000

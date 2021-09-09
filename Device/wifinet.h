@@ -3,10 +3,11 @@
 
 #include "local_config.h"
 #include <WiFi.h>
+#include <time.h>
+#include "log.h"
 
 class WifiNet {
 private:
-  bool hasWifi;
 
 public:
   WifiNet();
