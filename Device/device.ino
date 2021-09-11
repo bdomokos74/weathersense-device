@@ -25,9 +25,7 @@
 
 BMESensor *bmeSensor;
 DallasSensor *dallasSensor;
-#ifdef DO_SEVENSEG
 SevenSeg *sevenSeg;
-#endif
 WifiNet *wifiNet;
 IotConn *iotConn;
 LedUtil *led;
@@ -88,7 +86,12 @@ void setup()
     wifiNet->connect();
     iotConn->connect();
 
-    if(!iotConn->isConnected()) {
+    if(iotConn->isConnected()) {
+      iotConn->subscribeTwin();
+      iotConn->subscribeC2D();
+      iotConn->subscribeMethods();
+    } else 
+    {
       prevConnFailed = true;
       delay(deviceState->getMeasureIntervalMs());
     }
@@ -125,11 +128,15 @@ void loop()
         {
           wifiNet->connect();
           iotConn->connect();
+          if(iotConn->isConnected()) 
+          {
+            iotConn->subscribeTwin();
+            iotConn->subscribeC2D();
+            iotConn->subscribeMethods();
+          }
         }
         if (iotConn->isConnected() )
         {
-          iotConn->subscribeC2D();
-          iotConn->subscribeMethods();
           prevConnFailed = false;
           esp_task_wdt_reset();
 
@@ -175,9 +182,6 @@ void debugState()
     Serial.print(deviceState->getMeasureBatchSize());Serial.print("/");
     Serial.print(loopCnt);Serial.print("/");
     Serial.println(loopCnt % deviceState->getMeasureBatchSize());
-
-    Serial.print("wifi/iot: ");
-    Serial.print(wifiNet->isConnected());Serial.print("/");Serial.println(iotConn->isConnected());
 }
 
 void test() 

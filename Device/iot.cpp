@@ -26,7 +26,6 @@
 #define MQTT_QOS1 1
 #define DO_NOT_RETAIN_MSG 0
 
-char* iotConnString = DEV_CONN_STR;
 volatile bool hasIoTHub = false;
 
 extern State *deviceState;
@@ -71,40 +70,31 @@ static AzIoTSasToken sasToken(
     AZ_SPAN_FROM_BUFFER(sas_signature_buffer),
     AZ_SPAN_FROM_BUFFER(mqtt_password));
 
-int _handleMethod(char *methodName, char **response, int *response_size);
-
-
-void receivedCallback(char* topic, byte* payload, unsigned int length)
-{
-  Serial.print("Received [");
-  Serial.print(topic);
-  Serial.print("]: ");
-  for (int i = 0; i < length; i++)
-  {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println("");
-}
+az_iot_status _handleMethod(char *methodName, char *response, int response_size);
 
 bool _requestTwinGet() {
   char twin_document_topic_buffer[128];
   if (az_result_failed(az_iot_hub_client_twin_document_get_publish_topic(
       &client, twin_document_topic_request_id, twin_document_topic_buffer, sizeof(twin_document_topic_buffer), NULL)))
   {
-    logErr("Failed az_iot_hub_client_telemetry_get_publish_topic");
+    logErr("_requestTwinGet: Failed az_iot_hub_client_telemetry_get_publish_topic");
     return false;
   }
+  logMsg("_requestTwinGet: topic=", twin_document_topic_buffer);
 
-  if (esp_mqtt_client_publish(
+  int msgId = esp_mqtt_client_publish(
           mqtt_client,
           twin_document_topic_buffer,
           0,
           NULL,
           MQTT_QOS1,
-          NULL) == 0)
+          NULL);
+  if(msgId==-1)
   {
-    logErr("Failed publishing twin get");
+    logErr("_requestTwinGet: Failed");
     return false;
+  } else {
+    logMsg("_requestTwinGet: msgId=", msgId);
   }
   return true;
 }
@@ -112,11 +102,11 @@ bool _requestTwinGet() {
 bool _replyTwinGet(az_span *msg) {
   char statusBuf[128];
   char twin_patch_topic_buffer[128];
-  
-  
+
     statusRequested = deviceState->updateState((char*)az_span_ptr(*msg));
+    
     deviceState->getStatusString(statusBuf, sizeof(statusBuf));
-    Serial.print("response: ");Serial.println(statusBuf);
+    logMsgStr("_replyTwinGet: response: ", statusBuf);
 
     // publish status
     if (az_result_failed(az_iot_hub_client_twin_patch_get_publish_topic(
@@ -126,21 +116,25 @@ bool _replyTwinGet(az_span *msg) {
         sizeof(twin_patch_topic_buffer),
         NULL)))
     {
-      logErr("Failed to get the Twin Patch topic.");
+      logErr("_replyTwinGet: Failed to get the Twin Patch topic.");
       return false;
     }
-    Serial.print("sendtopic:");Serial.println(twin_patch_topic_buffer);
+    logMsgStr("_replyTwinGet, sendtopic: ", twin_patch_topic_buffer);
     // Publish the reported property update.
-    if(esp_mqtt_client_publish(
+    int msgId = 
+    esp_mqtt_client_publish(
         mqtt_client,
         twin_patch_topic_buffer,
         statusBuf,
         0,
         MQTT_QOS1,
-        NULL )==-1) 
+        NULL );
+    if(msgId==-1) 
     {
-      logErr("Failed publishing twin patch");
+      logErr("_replyTwinGet: Failed publishing twin patch");
       return false;
+    } else {
+      logMsg("_replyTwinGet response sent, msgId=", msgId);
     }
     return true;
 
@@ -156,22 +150,23 @@ bool _sendMethodResponse(az_iot_hub_client_method_request *method_request, az_io
       sizeof(methods_response_topic_buffer),
       NULL)))
   {
-    logMsg(
-        "Failed to get the Methods Response topic");
+    logMsg("_sendMethodResponse: Failed to get the Methods Response topic");
     return false;
   }
 
   // Publish the method response.
-  if(esp_mqtt_client_publish(
+  int msgId = esp_mqtt_client_publish(
       mqtt_client,
       methods_response_topic_buffer,
       (const char*)az_span_ptr(response),
       az_span_size(response),
       MQTT_QOS1,
-      NULL)==-1)
+      NULL);
+  if(msgId ==-1)
   {
-    logMsg("Failed to publish the Methods response: MQTTClient return code ");
-    
+    logMsg("_sendMethodResponse: Failed to publish the Methods response: MQTTClient return code ");
+  } else {
+    logMsg("_sendMethodResponse done, msgId=", msgId);
   }
 }
 
@@ -207,74 +202,87 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
   az_iot_hub_client_method_request methodReq;
   char responseBuf[100];
   int responseSize;
+  
+  logMsg("MQTT event ->", event->msg_id);
+
+  slice = az_span_copy(topic, az_span_create((uint8_t*)event->topic, event->topic_len));
+  az_span_ptr(slice)[0] = '\0';
+  logMsgStr("\ttopic=", (char*)az_span_ptr(topic));
+
+  slice = az_span_copy(msg, az_span_create((uint8_t*)event->data, event->data_len));
+  az_span_ptr(slice)[0] = '\0';
+  logMsgStr("\tdata=", (char*)az_span_ptr(msg));
+
+  logMsg("\tdata len=", event->data_len);
+  
   switch (event->event_id)
   {
     case MQTT_EVENT_ERROR:
-      logMsg("MQTT event MQTT_EVENT_ERROR");
+      logMsg("\tMQTT_EVENT_ERROR");
       break;
     case MQTT_EVENT_CONNECTED:
-      logMsg("MQTT event MQTT_EVENT_CONNECTED, subscribing twin get");
-      msgId = 
-        esp_mqtt_client_subscribe(mqtt_client, AZ_IOT_HUB_CLIENT_TWIN_RESPONSE_SUBSCRIBE_TOPIC, MQTT_QOS1);
-        logMsg("subscribing:", msgId);
-        if (msgId == -1)
-        {
-          Serial.println("Could not subscribe device twin topic");
-        }
+      logMsg("\tMQTT_EVENT_CONNECTED");
         hasIoTHub = true;
       break;
     case MQTT_EVENT_DISCONNECTED:
-      logMsg("MQTT event MQTT_EVENT_DISCONNECTED");
+      logMsg("\tMQTT_EVENT_DISCONNECTED");
       hasIoTHub = false;
       break;
     case MQTT_EVENT_SUBSCRIBED:
-      logMsg("MQTT event MQTT_EVENT_SUBSCRIBED, msgid=", event->msg_id);
-      
-      if(!_requestTwinGet()) return false;
-    
+      logMsg("\tMQTT_EVENT_SUBSCRIBED");
       break;
     case MQTT_EVENT_UNSUBSCRIBED:
-      logMsg("MQTT event MQTT_EVENT_UNSUBSCRIBED");
+      logMsg("\tMQTT_EVENT_UNSUBSCRIBED");
       break;
     case MQTT_EVENT_PUBLISHED:
-      logMsg("MQTT event MQTT_EVENT_PUBLISHED, msgId=", event->msg_id);
+      logMsg("\tMQTT_EVENT_PUBLISHED");
       break;
     case MQTT_EVENT_DATA:
-      logMsg("MQTT event MQTT_EVENT_DATA, msgId=", event->msg_id);
-      logMsg("event len=", event->data_len);
-      slice = az_span_copy(topic, az_span_create((uint8_t*)event->topic, event->topic_len));
-      az_span_ptr(slice)[0] = '\0';
-      logMsgStr("topic=", (char*)az_span_ptr(topic));
-      slice = az_span_copy(msg, az_span_create((uint8_t*)event->data, event->data_len));
-      az_span_ptr(slice)[0] = '\0';
-      logMsgStr("data=", (char*)az_span_ptr(msg));
+      logMsg("\tMQTT_EVENT_DATA");
+      
       //_debugEvent( (char*)az_span_ptr(topic), (char*)az_span_ptr(msg));
 
       if(_is_twinGetReply(&topic)) {
+        logMsg("\ttwin get  topic"); 
         _replyTwinGet( &msg);
       } else if( _is_twinPatch(&topic)) {
-        logMsg("do nothing, patch  topic"); 
+        logMsg("\ttwin patch  topic"); 
       } else if( _is_c2d(&topic)) {
-        logMsg("c2d, msg="); 
+        logMsg("\tc2d"); 
       } else if( _is_method(&topic)) {
         az_iot_hub_client_methods_parse_received_topic(&client, topic, &methodReq);
         az_span_to_str((char*)methodNameBuf, sizeof(methodNameBuf), methodReq.name);
-        logMsgStr("directmethod, msg=", methodNameBuf);
-        _handleMethod(methodNameBuf, (char**)&responseBuf, &responseSize);
-        _sendMethodResponse(&methodReq, AZ_IOT_STATUS_OK, az_span_create((uint8_t*)responseBuf, responseSize));
+        logMsgStr("\tdirectmethod, msg=", methodNameBuf);
+        az_iot_status statCode = _handleMethod(methodNameBuf, responseBuf, sizeof(responseBuf));
+        logMsgStr("\tdirectmethod, resp=", responseBuf);
+        _sendMethodResponse(&methodReq, statCode, az_span_create_from_str(responseBuf));
       } else {
-        logMsg("unexpected topic");
+        logMsg("\tunexpected topic");
       }
-    
       break;
     case MQTT_EVENT_BEFORE_CONNECT:
-      logMsg("MQTT event MQTT_EVENT_BEFORE_CONNECT");
+      logMsg("\tMQTT_EVENT_BEFORE_CONNECT");
       break;
     default:
-      logMsg("MQTT event UNKNOWN");
+      logMsg("\tUNKNOWN");
       break;
   }
 }
+static int twinMsgId;
+static bool _subscribeTwin() 
+{
+  int msgId = esp_mqtt_client_subscribe(mqtt_client, AZ_IOT_HUB_CLIENT_TWIN_RESPONSE_SUBSCRIBE_TOPIC, MQTT_QOS1);
+  
+  if (msgId == -1)
+  {
+    Serial.println("Could not subscribe device twin topic");
+    return false;
+  }
+  twinMsgId = msgId;
+  logMsg("!! _subscribeTwin: ", msgId);
+  return true;
+}
+
 static bool _subscribeC2DMessage()
 {
   int msgId = esp_mqtt_client_subscribe(mqtt_client, AZ_IOT_HUB_CLIENT_C2D_SUBSCRIBE_TOPIC, MQTT_QOS1);
@@ -283,7 +291,7 @@ static bool _subscribeC2DMessage()
     Serial.println("Could not subscribe C2D topic");
     return false;
   }
-  logMsg("subscribing C2D msg", msgId);
+  logMsg("!! _subscribeC2DMessage: ", msgId);
   return  true;
 }
 
@@ -295,7 +303,7 @@ static bool _subscribeMethods()
     Serial.println("Could not subscribe METHODS topic");
     return false;
   }
-  logMsg("subscribing METHODS msg", msgId);
+  logMsg("!!_subscribeMethods: ", msgId);
   return  true;
 }
 
@@ -425,6 +433,9 @@ void IotConn::close()
 
 }
 
+bool IotConn::subscribeTwin() {
+  return _subscribeTwin();
+}
 bool IotConn::subscribeC2D() {
   return _subscribeC2DMessage();
 }
@@ -442,10 +453,9 @@ bool IotConn::sendData()
 
   char *msg = storage->getDataBuf();
 
-  Serial.println("sendData called with msg:");
-  Serial.println(msg);
+  logMsg("sendData: telemetry:");
+  logMsg(msg);
 
-  logMsg("Sending telemetry ...");
 
   // The topic could be obtained just once during setup,
   // however if properties are used the topic need to be generated again to reflect the
@@ -453,86 +463,84 @@ bool IotConn::sendData()
   if (az_result_failed(az_iot_hub_client_telemetry_get_publish_topic(
           &client, NULL, telemetry_topic, sizeof(telemetry_topic), NULL)))
   {
-    logErr("Failed az_iot_hub_client_telemetry_get_publish_topic");
+    logErr("sendData: Failed az_iot_hub_client_telemetry_get_publish_topic");
     return false;
   }
   az_span telemetry = az_span_create_from_str(msg);
 
-  if (esp_mqtt_client_publish(
+  int msgId = esp_mqtt_client_publish(
           mqtt_client,
           telemetry_topic,
           (const char*)az_span_ptr(telemetry),
           az_span_size(telemetry),
           MQTT_QOS1,
-          DO_NOT_RETAIN_MSG) == 0)
+          DO_NOT_RETAIN_MSG);
+  if(msgId==-1)
   {
-    logErr("Failed publishing");
+    logErr("sendData: Failed publishing");
     return false;
   }
   else
   {
-    logMsg("Message published successfully");
+    logMsg("sendData: published successfully, msgId=", msgId);
     return true;
   }
 }
 
 
-int _handleMethod(char *methodName, char **response, int *response_size)
+az_iot_status _handleMethod(char *methodName, char *response, int response_size)
 {
-  Serial.println("handle device method called");
-  logMsgStr("Try to invoke method ", (char*)methodName);
-
-  char payloadBuf[50];
+  const char *statFmt = "{\"status\":%d,\"payload\":\"%s\"}";
+  char payloadBuf[100];
+  snprintf(payloadBuf, strlen(payloadBuf), "%s", "OK");
+  logMsgStr("_handleMethod: ", (char*)methodName);
+  
+  az_iot_status iotStatus = AZ_IOT_STATUS_OK;
   int result = 200;
-  snprintf(payloadBuf, 100, "\"OK\"");
-
   if (strcmp(methodName, "meas") == 0)
   {
-    logMsg("send measurements");
-    storage->getMeasurementString(payloadBuf, 50);
-  } else if (strcmp(methodName, "start") == 0)
+    logMsg("\tsend measurements");
+    storage->getMeasurementString(payloadBuf, strlen(payloadBuf));
+  } 
+  else if (strcmp(methodName, "led on") == 0)
   {
-    logMsg("do somethig on start");
-    messageSendingOn = true;
-  }
-  else if (strcmp(methodName, "stop") == 0)
-  {
-    logMsg("Stop shell");
-    messageSendingOn = false;
-  }
-  else if (strcmp(methodName, "ledon") == 0)
-  {
-    logMsg("led on");
+    logMsg("\tled on");
     led->ledOn();
   }
-  else if (strcmp(methodName, "ledoff") == 0)
+  else if (strcmp(methodName, "led off") == 0)
   {
-    logMsg("led off");
+    logMsg("\tled off");
     led->ledOff();
   }
-  else if (strcmp(methodName, "7segon") == 0)
+  else if (strcmp(methodName, "7seg on") == 0)
   {
-    logMsg("sevenseg on");
+    logMsg("\tsevenseg on");
     if(sevenSeg!=NULL && sevenSeg->isConnected()) {
       sevenSeg->printHex(0xBEEF);
     }
   }
-  else if (strcmp(methodName, "7segoff") == 0)
+  else if (strcmp(methodName, "7seg off") == 0)
   {
-    logMsg("sevenseg off");
+    logMsg("\tsevenseg off");
     if(sevenSeg!=NULL && sevenSeg->isConnected()) {
       sevenSeg->clear();
+    }
+  }else if (strcmp(methodName, "7seg time") == 0)
+  {
+    logMsg("\tsevenseg time");
+    if(sevenSeg!=NULL && sevenSeg->isConnected()) {
+      // TODO display time
     }
   }
   else
   {
-    logMsgStr("No method %s found", (char*)methodName);
-    snprintf(payloadBuf, 50, "\"FAIL\"");
+    logMsgStr("_handleMethod: No method found: ", (char*)methodName);
+    snprintf(payloadBuf, strlen(payloadBuf), "%s", "FAIL");
     result = 404;
+    iotStatus = AZ_IOT_STATUS_BAD_REQUEST;
   }
+  
+  snprintf(response, response_size, statFmt, result, payloadBuf );
 
-  *response_size = strlen(payloadBuf) + 1;
-  *response = (char *)strdup(payloadBuf);
-
-  return result;
+  return iotStatus;
 }

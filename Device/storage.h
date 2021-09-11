@@ -4,6 +4,8 @@
 #include "bme_sensor.h"
 #include "dallas_sensor.h"
 #include "state.h"
+#include "az_span.h"
+#include "log.h"
 
 class Storage {
 private:
