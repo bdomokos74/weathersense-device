@@ -515,6 +515,8 @@ az_iot_status _handleMethod(char *methodName, char *response, int response_size)
   else if (strcmp(methodName, "7seg on") == 0)
   {
     logMsg("\tsevenseg on");
+    deviceState->setSevenSegTime(false);
+    deviceState->setSevenSegOn(true);
     if(sevenSeg!=NULL && sevenSeg->isConnected()) {
       sevenSeg->printHex(0xBEEF);
     }
@@ -522,14 +524,18 @@ az_iot_status _handleMethod(char *methodName, char *response, int response_size)
   else if (strcmp(methodName, "7seg off") == 0)
   {
     logMsg("\tsevenseg off");
+    deviceState->setSevenSegTime(false);
+    deviceState->setSevenSegOn(false);
     if(sevenSeg!=NULL && sevenSeg->isConnected()) {
       sevenSeg->clear();
     }
   }else if (strcmp(methodName, "7seg time") == 0)
   {
     logMsg("\tsevenseg time");
+    deviceState->setSevenSegTime(true);
+    deviceState->setSevenSegOn(true);
     if(sevenSeg!=NULL && sevenSeg->isConnected()) {
-      // TODO display time
+      sevenSeg->showTime();
     }
   }
   else

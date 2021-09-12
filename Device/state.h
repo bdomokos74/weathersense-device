@@ -20,7 +20,10 @@ public:
     int getMeasureBatchSize();
     void getStatusString(char* buf, int len);
     int updateState(char* payload);
-
+    bool isSevenSegTime();
+    void setSevenSegTime(bool showTime);
+    bool isSevenSegOn();
+    void setSevenSegOn(bool ssegOn);
     bool sleepStatusChanged;
 
 };

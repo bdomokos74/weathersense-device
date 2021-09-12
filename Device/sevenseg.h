@@ -24,6 +24,7 @@ public:
   void printHex(int i);
   void clear();
   void showColon(bool c);
+  void showTime();
 };
 
 #endif

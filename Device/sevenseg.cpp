@@ -71,3 +71,29 @@ void SevenSeg::showColon(bool col) {
   sseg.writeDisplay();
   #endif
 }
+
+void SevenSeg::showTime() {
+  #ifdef DO_SEVENSEG
+  
+  struct tm* ptm;
+  time_t now = time(NULL);
+  ptm = gmtime(&now);
+  int h = (ptm->tm_hour+2)%24;
+  int num = (int)(h*100+ptm->tm_min);
+  sseg.print(num);
+  if(num<100) 
+  {
+    sseg.writeDigitNum(1, 0);
+  }
+  if(num<10)
+  {
+    sseg.writeDigitNum(2, 0);
+  }
+  sseg.drawColon(false);
+  sseg.writeDisplay();
+  delay(500);
+  sseg.drawColon(true);
+  sseg.writeDisplay();
+
+  #endif
+}

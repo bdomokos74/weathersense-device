@@ -5,6 +5,8 @@ RTC_DATA_ATTR int sleepTimeSec = SLEEP_TIME_SEC;
 RTC_DATA_ATTR int measureIntervalMs = MEASURE_INTERVAL_MS;
 RTC_DATA_ATTR int measureBatchSize = MEASURE_BATCH_SIZE;
 RTC_DATA_ATTR int ledPin = DEFAULT_LED_PIN;
+RTC_DATA_ATTR bool sevenSegTime = false;
+RTC_DATA_ATTR bool sevenSegOn = true;
 
 const char *statusTemplate = "{\"doSleep\":%d,\"sleepTimeSec\":%d,\"measureIntervalMs\":%d,\"measureBatchSize\":%d,\"ledPin\":%d}";
 
@@ -16,6 +18,10 @@ int State::getDoSleep() {return doSleep;};
 int State::getSleepTimeSec() {return sleepTimeSec;};
 int State::getMeasureIntervalMs() {return measureIntervalMs;};
 int State::getMeasureBatchSize() {return measureBatchSize;};
+bool State::isSevenSegTime() {return sevenSegTime;};
+void State::setSevenSegTime(bool showTime) {sevenSegTime = showTime;};
+bool State::isSevenSegOn() { return sevenSegOn;};
+void State::setSevenSegOn(bool ssegOn) {sevenSegOn = ssegOn;};
 
 void State::getStatusString(char* buf, int len) {
     snprintf(buf, len, statusTemplate, doSleep, sleepTimeSec, measureIntervalMs, measureBatchSize, ledPin);

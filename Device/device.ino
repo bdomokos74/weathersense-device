@@ -176,6 +176,9 @@ void loop()
     Serial.println("Sleep mode was requested, going to sleep...");
     iotConn->close();
     wifiNet->close();
+    if(sevenSeg->isConnected()) {
+      sevenSeg->clear();
+    }
     deepSleep->goSleep();
   }
 
@@ -210,16 +213,26 @@ void test()
 
 void show7Seg() 
 {
-  if(!sevenSeg->isConnected()) 
-    {
-      sevenSeg->connect();
-    }
-    if(bmeSensor->isConnected()) 
-    {
-      float temp = bmeSensor->readTemp();
-      if(sevenSeg->isConnected()) 
+  if(deviceState->isSevenSegOn()) 
+  {
+    if(!sevenSeg->isConnected()) 
       {
-        sevenSeg->print(temp);
+        sevenSeg->connect();
       }
-    }
+      if(deviceState->isSevenSegTime()) 
+      {
+        sevenSeg->showTime();
+      }
+      else 
+      {
+        if(bmeSensor->isConnected()) 
+        {
+          float temp = bmeSensor->readTemp();
+          if(sevenSeg->isConnected()) 
+          {
+            sevenSeg->print(temp);
+          }
+        }
+      }
+  }
 }
