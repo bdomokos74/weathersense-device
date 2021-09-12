@@ -90,6 +90,8 @@ void setup()
       iotConn->subscribeTwin();
       iotConn->subscribeC2D();
       iotConn->subscribeMethods();
+      delay(500);
+      iotConn->requestTwinGet();
     } else 
     {
       prevConnFailed = true;
@@ -121,8 +123,12 @@ void loop()
     debugState();
     
     if(prevConnFailed || 
-      storage->getNumStoredMeasurements() >= deviceState->getMeasureBatchSize() ) 
+      storage->getNumStoredMeasurements() >= deviceState->getMeasureBatchSize() ||
+      storage->isBufferFull()) 
     {
+        if(storage->isBufferFull()) {
+          logMsg("!buffer full - trying to send");
+        }
         logMsg("connection loop");
         if(!wifiNet->isConnected())   
         {
@@ -133,6 +139,8 @@ void loop()
             iotConn->subscribeTwin();
             iotConn->subscribeC2D();
             iotConn->subscribeMethods();
+            delay(100);
+            iotConn->requestTwinGet();
           }
         }
         if (iotConn->isConnected() )
@@ -149,7 +157,6 @@ void loop()
             }
             if(iotConn->sendData()) 
             {
-              Serial.println("Send OK");
               led->flashLedSend();
               storage->reset();
             } else {

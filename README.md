@@ -100,3 +100,6 @@ Also for monitor etc.:
     "IoTWorkbench.BoardId": "esp32",
     "arduino.path": "/Applications",
     "arduino.commandPath": "Contents/MacOS/arduino"
+
+https://github.com/Azure/azure-sdk-for-c/blob/main/sdk/docs/iot/mqtt_state_machine.md
+

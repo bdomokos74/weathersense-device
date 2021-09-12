@@ -59,13 +59,21 @@ void DeepSleep::wakeLoop() {
     esp_task_wdt_reset();
   }
 
-  if(prevConnFailed || storage->getNumStoredMeasurements() >= deviceState->getMeasureBatchSize() 
-    || wakeCnt==0) 
+  if(prevConnFailed || 
+    storage->getNumStoredMeasurements() >= deviceState->getMeasureBatchSize() ||
+    storage->isBufferFull() ||
+    wakeCnt==0) 
   {
+    if(storage->isBufferFull()) {
+          logMsg("!buffer full - trying to send");
+    }
     wifiNet->connect();  
     iotConn->connect();
     if(iotConn->isConnected())
     {
+      iotConn->subscribeTwin();
+      delay(500);
+      iotConn->requestTwinGet();
       esp_task_wdt_reset();
       prevConnFailed = false;
       

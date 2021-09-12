@@ -80,7 +80,7 @@ bool _requestTwinGet() {
     logErr("_requestTwinGet: Failed az_iot_hub_client_telemetry_get_publish_topic");
     return false;
   }
-  logMsg("_requestTwinGet: topic=", twin_document_topic_buffer);
+  logMsgStr("_requestTwinGet: topic=", twin_document_topic_buffer);
 
   int msgId = esp_mqtt_client_publish(
           mqtt_client,
@@ -500,7 +500,7 @@ az_iot_status _handleMethod(char *methodName, char *response, int response_size)
   if (strcmp(methodName, "meas") == 0)
   {
     logMsg("\tsend measurements");
-    storage->getMeasurementString(payloadBuf, strlen(payloadBuf));
+    storage->getMeasurementString(payloadBuf, sizeof(payloadBuf));
   } 
   else if (strcmp(methodName, "led on") == 0)
   {
