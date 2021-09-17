@@ -21,6 +21,7 @@ public:
   char *getDataBuf();
   int getMeasurementString(char * buf, int size);
   bool isBufferFull();
+  int getRemainingLen();
 };
 
 #endif

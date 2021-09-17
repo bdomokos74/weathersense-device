@@ -18,9 +18,13 @@ Storage::Storage(BMESensor *bme, DallasSensor *dallas, State *state) {
     deviceState = state;
 }
 
+int Storage::getRemainingLen() 
+{
+  return (int)(RTC_BUF_SIZE-(int)(bufPoi-dataBuf));
+}
 int Storage::storeMeasurement() 
 {
-  int remainingLen = RTC_BUF_SIZE-(int)(bufPoi-dataBuf);
+  int remainingLen = getRemainingLen();
   
   boolean doSleep = deviceState->getDoSleep();
   int sleepTimeSec = deviceState->getSleepTimeSec();
@@ -64,11 +68,11 @@ int Storage::storeMeasurement()
   
   if(bmeSensor->isConnected()&&dallasSensor->isConnected()) {
     next = az_span_copy(next, AZ_SPAN_LITERAL_FROM_STR(",\"t1\":"));
-    snprintf(tmp, sizeof(tmp), "%.0f", temp);
+    snprintf(tmp, sizeof(tmp), "%.2f", temp);
     tmpSpan = az_span_create_from_str(tmp);
     next = az_span_copy(next, tmpSpan);
     next = az_span_copy(next, AZ_SPAN_LITERAL_FROM_STR(",\"t2\":"));
-    snprintf(tmp, sizeof(tmp), "%.0f", temp2);
+    snprintf(tmp, sizeof(tmp), "%.2f", temp2);
     tmpSpan = az_span_create_from_str(tmp);
     next = az_span_copy(next, tmpSpan);
     //writtenChars = snprintf(bufPoi, remainingLen, bothTemplate, msgId++, temp, pres, hum, battery,currTime,temp2);
@@ -111,6 +115,7 @@ int Storage::storeMeasurement()
     az_span measSpan = az_span_create_from_str((char*)az_span_ptr(span));
     az_span_copy(rtcSpan, measSpan);
     bufPoi += writtenChars;
+    bufPoi[0] = '\0';
     if(writtenChars > 0)
       numStoredMeasurements++;
   } else {

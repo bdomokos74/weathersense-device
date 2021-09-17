@@ -11,6 +11,7 @@
 #include <az_iot_hub_client.h>
 #include <az_result.h>
 #include <az_span.h>
+#include <esp_system.h>
 
 /*String containing Hostname, Device Id & Device Key in the format:                         */
 /*  "HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>"                */
@@ -25,6 +26,8 @@
 #define MQTT_QOS0 0
 #define MQTT_QOS1 1
 #define DO_NOT_RETAIN_MSG 0
+
+extern int wakeCnt;
 
 volatile bool hasIoTHub = false;
 
@@ -491,7 +494,7 @@ bool IotConn::sendData()
 az_iot_status _handleMethod(char *methodName, char *response, int response_size)
 {
   const char *statFmt = "{\"status\":%d,\"payload\":\"%s\"}";
-  char payloadBuf[100];
+  char payloadBuf[300];
   snprintf(payloadBuf, strlen(payloadBuf), "%s", "OK");
   logMsgStr("_handleMethod: ", (char*)methodName);
   
@@ -537,6 +540,13 @@ az_iot_status _handleMethod(char *methodName, char *response, int response_size)
     if(sevenSeg!=NULL && sevenSeg->isConnected()) {
       sevenSeg->showTime();
     }
+  }else if (strcmp(methodName, "stat") == 0)
+  {
+    const char *tpl = "wakeNum:%d, freeMem: %d, storedMeas: %d, freeMeasBuf: %d";
+    snprintf(payloadBuf, sizeof(payloadBuf), tpl, 
+      wakeCnt, (int)esp_get_free_heap_size(), storage->getNumStoredMeasurements(), storage->getRemainingLen()
+    
+    );
   }
   else
   {
