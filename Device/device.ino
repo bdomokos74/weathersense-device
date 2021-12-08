@@ -20,7 +20,6 @@
 #define DALLAS_PIN 15
 
 #define BME_ADDR 0x76
-
 #define WDT_TIMEOUT 600
 
 BMESensor *bmeSensor;
@@ -55,7 +54,7 @@ void setup()
   start_interval_ms = millis();
   Wire.begin();
 
-  bmeSensor = new BMESensor(BME_ADDR);
+  bmeSensor = new BMESensor();
   dallasSensor = new DallasSensor(DALLAS_PIN);
   deviceState = new State();
   led = new LedUtil();

@@ -103,3 +103,8 @@ Also for monitor etc.:
 
 https://github.com/Azure/azure-sdk-for-c/blob/main/sdk/docs/iot/mqtt_state_machine.md
 
+- GM counter
+https://github.com/2969773606/GeigerCounter-V1.1
+151CPM=1uSv/h for M4011 GM Tube
+
+ connect the P3 Pin 1 2 3 to arduino GND,5V, Digital 2 respectively.

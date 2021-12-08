@@ -24,7 +24,7 @@ void LedUtil::flashLed() {
   _flashLed(2, 300);
 }
 void LedUtil::flashLed1() {
-  _flashLed(1, 300);
+  _flashLed(1, 100);
 }
 void LedUtil::flashLedSend() {
   _flashLed(2, 100);
