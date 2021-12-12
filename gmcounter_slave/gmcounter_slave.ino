@@ -47,6 +47,8 @@ unsigned long cpm;        //variable for CPM
 unsigned int multiplier;  //variable for calculation CPM in this sketch
 unsigned long previousMillis;  //variable for time measurement
 
+int ledPin = LED_BUILTIN;
+
 int arrival[200];
 unsigned long prev = 0;
 int interruptPin = 2;
@@ -69,14 +71,18 @@ byte sendBuf[10];
 //const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 //Adafruit_LiquidCrystal lcd(LCD_ADDR);
 
-void handleQuery(int receivedBytes) {
-  for(int i = 0; i<receivedBytes; i++) {
-    rcvBuf[i] = Wire.read();
-  }
-  if(rcvBuf[0]==0x01) {
-     Wire.write(sendBuf, sizeof(int)+sizeof(long));
-  }
+void blink() {
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, HIGH);
+  delay(500);
+  digitalWrite(ledPin, LOW);
 }
+
+void handleQuery(int receivedBytes) {
+  digitalWrite(ledPin, HIGH);
+  Wire.write(sendBuf, sizeof(long)+sizeof(long));
+}
+
 
 void setup(){             //setup subprocedure
   counts = 0;
@@ -89,7 +95,7 @@ void setup(){             //setup subprocedure
   attachInterrupt(digitalPinToInterrupt(interruptPin), tube_impulse, FALLING); //define external interrupts 
 
   Wire.begin(MY_ADDR);
-  Wire.onReceive(handleQuery);
+  Wire.onRequest(handleQuery);
   Serial.println("start");
   
   //lcd.begin(16, 2);
@@ -102,6 +108,7 @@ void loop(){                                 //main cycle
   if(currentMillis - previousMillis > LOG_PERIOD){
     
     previousMillis = currentMillis;
+    digitalWrite(ledPin, LOW);
     
     noInterrupts();
     countsTmp = counts;
