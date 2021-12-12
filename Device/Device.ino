@@ -18,10 +18,9 @@
 
 
 #define DALLAS_PIN 15
-
 #define BME_ADDR 0x76
-
 #define WDT_TIMEOUT 600
+#define GM_ADDR 0x25
 
 BMESensor *bmeSensor;
 DallasSensor *dallasSensor;
@@ -32,6 +31,7 @@ LedUtil *led;
 Storage *storage;
 State *deviceState;
 DeepSleep * deepSleep;
+GMSensor * gmSensor;
 
 unsigned long start_interval_ms = 0;
 
@@ -59,12 +59,13 @@ void setup()
   dallasSensor = new DallasSensor(DALLAS_PIN);
   deviceState = new State();
   led = new LedUtil();
-  storage = new Storage(bmeSensor, dallasSensor, deviceState);
+  storage = new Storage(bmeSensor, dallasSensor, gmSensor, deviceState);
   wifiNet = new WifiNet();
   iotConn = new IotConn(wifiNet);
   deepSleep = new DeepSleep(wifiNet, iotConn, storage, deviceState, led);
   sevenSeg = new SevenSeg();
-
+  gmSensor = new GMSensor(GM_ADDR);
+  
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
 

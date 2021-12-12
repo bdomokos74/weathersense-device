@@ -12,20 +12,23 @@ RTC_DATA_ATTR int numStoredMeasurements = 0;
 RTC_DATA_ATTR int msgId = 0;
 RTC_DATA_ATTR bool bufferFull = false;
 
-Storage::Storage(BMESensor *bme, DallasSensor *dallas, State *state) {
+Storage::Storage(BMESensor *bme, DallasSensor *dallas, GMSensor *gm, State *state) {
     bmeSensor = bme;
     dallasSensor = dallas;
     deviceState = state;
+    gmSensor = gm;
 }
 
 int Storage::getRemainingLen() 
 {
   return (int)(RTC_BUF_SIZE-(int)(bufPoi-dataBuf));
 }
+
+byte gmBuf[8];
 int Storage::storeMeasurement() 
 {
   int remainingLen = getRemainingLen();
-  
+  boolean hasMeasurement = false;
   boolean doSleep = deviceState->getDoSleep();
   int sleepTimeSec = deviceState->getSleepTimeSec();
   float temp;
@@ -48,6 +51,14 @@ int Storage::storeMeasurement()
       temp2 = dallasSensor->readTemp();
   }
 
+  unsigned long cpm;
+  bool hasCpm = false;
+
+  if(gmSensor->isConnected()) {
+    hasCpm = gmSensor->read(gmBuf);
+    memcpy(&cpm, gmBuf+sizeof(long), sizeof(long));
+  }
+
   char measBuf[200];
   az_span span = az_span_create((uint8_t*)measBuf, sizeof(measBuf));
   char tmp[20];
@@ -67,6 +78,7 @@ int Storage::storeMeasurement()
 
   
   if(bmeSensor->isConnected()&&dallasSensor->isConnected()) {
+    hasMeasurement = true;
     next = az_span_copy(next, AZ_SPAN_LITERAL_FROM_STR(",\"t1\":"));
     snprintf(tmp, sizeof(tmp), "%.2f", temp);
     tmpSpan = az_span_create_from_str(tmp);
@@ -77,12 +89,14 @@ int Storage::storeMeasurement()
     next = az_span_copy(next, tmpSpan);
     //writtenChars = snprintf(bufPoi, remainingLen, bothTemplate, msgId++, temp, pres, hum, battery,currTime,temp2);
   } else if( bmeSensor->isConnected()) {
+    hasMeasurement = true;
     next = az_span_copy(next, AZ_SPAN_LITERAL_FROM_STR(",\"t1\":"));
     snprintf(tmp, sizeof(tmp), "%.2f", temp);
     tmpSpan = az_span_create_from_str(tmp);
     next = az_span_copy(next, tmpSpan);
     //writtenChars = snprintf(bufPoi, remainingLen, bmeMessageTemplate, msgId++, temp, pres, hum, battery,currTime);
   } else if (dallasSensor->isConnected()) {
+    hasMeasurement = true;
     next = az_span_copy(next, AZ_SPAN_LITERAL_FROM_STR(",\"t1\":"));
     snprintf(tmp, sizeof(tmp), "%.2f", temp2);
     tmpSpan = az_span_create_from_str(tmp);
@@ -90,6 +104,7 @@ int Storage::storeMeasurement()
       //writtenChars = snprintf(bufPoi, remainingLen, dallasMessageTemplate, msgId++, temp2, battery, currTime);
   } 
   if(bmeSensor->isConnected()) {
+    hasMeasurement = true;
     next = az_span_copy(next, AZ_SPAN_LITERAL_FROM_STR(",\"p\":"));
     snprintf(tmp, sizeof(tmp), "%.2f", pres);
     tmpSpan = az_span_create_from_str(tmp);
@@ -98,6 +113,18 @@ int Storage::storeMeasurement()
     snprintf(tmp, sizeof(tmp), "%.2f", hum);
     tmpSpan = az_span_create_from_str(tmp);
     next = az_span_copy(next, tmpSpan);
+  }
+ 
+  if(gmSensor->isConnected() && hasCpm) {
+    hasMeasurement = true;
+    next = az_span_copy(next, AZ_SPAN_LITERAL_FROM_STR(",\"cpm\":"));
+    snprintf(tmp, sizeof(tmp), "%d", cpm);
+    tmpSpan = az_span_create_from_str(tmp);
+    next = az_span_copy(next, tmpSpan);
+  }
+  if(!hasMeasurement) {
+    Serial.println("skipping, as no meas");
+    return 0;
   }
   next = az_span_copy(next, AZ_SPAN_LITERAL_FROM_STR(",\"bat\":"));
   snprintf(tmp, sizeof(tmp), "%.2f", battery);
