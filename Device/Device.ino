@@ -51,12 +51,15 @@ void setup()
   while(!Serial) {};
   delay(100);
   Serial.println("ESP32 Device Initializing..."); 
+  
+  esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
 
   start_interval_ms = millis();
   Wire.begin();
 
   bmeSensor = new BMESensor(BME_ADDR);
   dallasSensor = new DallasSensor(DALLAS_PIN);
+  gmSensor = new GMSensor(GM_ADDR);
   deviceState = new State();
   led = new LedUtil();
   storage = new Storage(bmeSensor, dallasSensor, gmSensor, deviceState);
@@ -64,7 +67,7 @@ void setup()
   iotConn = new IotConn(wifiNet);
   deepSleep = new DeepSleep(wifiNet, iotConn, storage, deviceState, led);
   sevenSeg = new SevenSeg();
-  gmSensor = new GMSensor(GM_ADDR);
+  
   
   esp_task_wdt_init(WDT_TIMEOUT, true);
   esp_task_wdt_add(NULL);
@@ -88,11 +91,11 @@ void setup()
     iotConn->connect();
 
     if(iotConn->isConnected()) {
-      iotConn->subscribeTwin();
-      iotConn->subscribeC2D();
-      iotConn->subscribeMethods();
-      delay(500);
-      iotConn->requestTwinGet();
+      //iotConn->subscribeTwin();
+      //iotConn->subscribeC2D();
+      //iotConn->subscribeMethods();
+      //delay(500);
+      //iotConn->requestTwinGet();
     } else 
     {
       prevConnFailed = true;
@@ -137,10 +140,11 @@ void loop()
           iotConn->connect();
           if(iotConn->isConnected()) 
           {
-            iotConn->subscribeTwin();
+            /*iotConn->subscribeTwin();
             iotConn->subscribeC2D();
             iotConn->subscribeMethods();
             delay(100);
+             */
             iotConn->requestTwinGet();
           }
         }
@@ -153,9 +157,11 @@ void loop()
 
           if(  storage->getNumStoredMeasurements()>0)
           {
-            if(!iotConn->requestTwinGet()) {
-              logMsg("twin get req failed");
-            }
+            iotConn->requestTwinGet();
+            //if(!iotConn->requestTwinGet()) {
+            //  logMsg("twin get req failed");
+            //}
+            
             if(iotConn->sendData()) 
             {
               led->flashLedSend();

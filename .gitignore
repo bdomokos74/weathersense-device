@@ -144,3 +144,5 @@ esp32-iot-log*
 adafruit-log*
 tmp/*
 logs/*
+
+arduino_experiment/

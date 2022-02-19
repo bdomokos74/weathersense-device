@@ -23,10 +23,13 @@ public:
   bool connect();
   bool sendData();
   bool isConnected();
+  
   bool requestTwinGet();
+  /*
   bool subscribeTwin();
   bool subscribeC2D();
   bool subscribeMethods();
+  */
   void close();
 
   static unsigned long sendTime;

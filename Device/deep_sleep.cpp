@@ -71,9 +71,10 @@ void DeepSleep::wakeLoop() {
     iotConn->connect();
     if(iotConn->isConnected())
     {
-      iotConn->subscribeTwin();
-      delay(500);
-      iotConn->requestTwinGet();
+      //iotConn->subscribeTwin();
+      //delay(500);
+      //iotConn->requestTwinGet();
+      
       esp_task_wdt_reset();
       prevConnFailed = false;
       
@@ -106,4 +107,3 @@ void DeepSleep::wakeLoop() {
     goSleep();
   }
 }
-

@@ -6,6 +6,7 @@
 #define LCD_ADDR 0x20
 
 Adafruit_LiquidCrystal lcd(LCD_ADDR);
+
 int deviceAddr;
 GMSensor::GMSensor(int addr) {
   deviceAddr = addr;
@@ -31,7 +32,7 @@ GMSensor::GMSensor(int addr) {
 }
 
 bool GMSensor::isConnected() {
-  return true;
+  return found;
 }
 
 unsigned long id;
